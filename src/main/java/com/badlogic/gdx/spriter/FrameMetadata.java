@@ -1,0 +1,221 @@
+// Copyright (c) 2015 The original author or authors
+//
+// This software may be modified and distributed under the terms
+// of the zlib license.  See the LICENSE file for details.
+
+package com.badlogic.gdx.spriter;
+
+import static com.badlogic.gdx.spriter.FrameData.adjustTime;
+import static com.badlogic.gdx.spriter.FrameData.getFactor;
+import static com.badlogic.gdx.spriter.FrameData.getNextXLineKey;
+import static com.badlogic.gdx.spriter.FrameData.lastKeyForTime;
+
+import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterElement;
+import com.badlogic.gdx.spriter.data.SpriterEventline;
+import com.badlogic.gdx.spriter.data.SpriterKey;
+import com.badlogic.gdx.spriter.data.SpriterMeta;
+import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
+import com.badlogic.gdx.spriter.data.SpriterSound;
+import com.badlogic.gdx.spriter.data.SpriterSoundline;
+import com.badlogic.gdx.spriter.data.SpriterSoundlineKey;
+import com.badlogic.gdx.spriter.data.SpriterSpatial;
+import com.badlogic.gdx.spriter.data.SpriterTag;
+import com.badlogic.gdx.spriter.data.SpriterTagline;
+import com.badlogic.gdx.spriter.data.SpriterTaglineKey;
+import com.badlogic.gdx.spriter.data.SpriterTimeline;
+import com.badlogic.gdx.spriter.data.SpriterVarDef;
+import com.badlogic.gdx.spriter.data.SpriterVarValue;
+import com.badlogic.gdx.spriter.data.SpriterVarline;
+import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.ObjectMap;
+
+public class FrameMetadata {
+
+	public final ObjectMap<String, SpriterVarValue> animationVars = new ObjectMap<String, SpriterVarValue>();
+	public final ObjectMap<String, ObjectMap<String, SpriterVarValue>> objectVars = new ObjectMap<String, ObjectMap<String, SpriterVarValue>>();
+	public final Array<String> animationTags = new Array<String>();
+	public final ObjectMap<String, Array<String>> objectTags = new ObjectMap<String, Array<String>>();
+	public final Array<String> events = new Array<String>();
+	public final Array<SpriterSound> sounds = new Array<SpriterSound>();
+
+	public void addObjectVar(String objectName, String varName, SpriterVarValue value) {
+		ObjectMap<String, SpriterVarValue> values = objectVars.get(objectName);
+		if (values == null) {
+			values = new ObjectMap<String, SpriterVarValue>();
+			objectVars.put(objectName, values);
+		}
+		values.put(varName, value);
+	}
+
+	public void addObjectTag(String objectName, String tag) {
+		Array<String> tags = objectTags.get(objectName);
+		if (tags == null) {
+			tags = new Array<String>();
+			objectTags.put(objectName, tags);
+		}
+		tags.add(tag);
+	}
+
+	@Override
+	public String toString() {
+		return "FrameMetadata [animationVars=" + animationVars + ", objectVars=" + objectVars + ", animationTags=" + animationTags + ", objectTags=" + objectTags + ", events=" + events + ", sounds=" + sounds + "]";
+	}
+	
+	public static FrameMetadata create(SpriterAnimation first, SpriterAnimation second, float targetTime, float deltaTime, float factor) {
+		return create(factor < 0.5f ? first : second, targetTime, deltaTime);
+	}
+
+	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime) {
+		return create(animation, targetTime, deltaTime, null);
+	}
+
+	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime, SpriterSpatial parentInfo) {
+		FrameMetadata metadata = new FrameMetadata();
+		addVariableAndTagData(animation, targetTime, metadata);
+		addEventData(animation, targetTime, deltaTime, metadata);
+		addSoundData(animation, targetTime, deltaTime, metadata);
+		return metadata;
+	}
+	
+	private static void addVariableAndTagData(SpriterAnimation animation, float targetTime, FrameMetadata metadata) {
+		if (animation.meta == null)
+			return;
+
+		if (animation.meta.varlines != null) {
+			for (SpriterVarline varline : animation.meta.varlines) {
+				SpriterVarDef variable = animation.entity.variables.get(varline.def);
+				metadata.animationVars.put(variable.name, getVariableValue(animation, variable, varline, targetTime));
+			}
+		}
+
+		SpriterElement[] tags = animation.entity.data.tags.toArray(SpriterElement.class);
+		SpriterTagline tagline = animation.meta.tagline;
+
+		if (tagline != null) {
+			SpriterTaglineKey key = lastKeyForTime(tagline.keys.toArray(), targetTime);
+
+			if (key != null && key.tags != null)
+				for (SpriterTag tag : key.tags)
+					metadata.animationTags.add(tags[tag.tagId].name);
+		}
+
+		for (SpriterTimeline timeline : animation.timelines) {
+			SpriterMeta meta = timeline.meta;
+
+			if (meta == null)
+				continue;
+
+			SpriterObjectInfo objInfo = getObjectInfo(animation, timeline.name);
+			
+			if(objInfo == null)
+				continue;
+
+			if (meta.varlines != null) {
+				for (SpriterVarline varline : timeline.meta.varlines) {
+					SpriterVarDef variable = objInfo.variables.get(varline.def);
+					metadata.addObjectVar(objInfo.name, variable.name, getVariableValue(animation, variable, varline, targetTime));
+				}
+			}
+
+			if (meta.tagline != null) {
+				SpriterTaglineKey key = lastKeyForTime(tagline.keys.toArray(), targetTime);
+
+				if (key != null && key.tags != null)
+					for (SpriterTag tag : key.tags)
+						metadata.addObjectTag(objInfo.name, tags[tag.tagId].name);
+			}
+		}
+	}
+	
+	private static SpriterVarValue getVariableValue(SpriterAnimation animation, SpriterVarDef varDef, SpriterVarline varline, float targetTime) {
+		SpriterVarlineKey[] keys = varline.keys.toArray(SpriterVarlineKey.class);
+
+		if (keys == null)
+			return varDef.variableValue;
+
+		SpriterVarlineKey keyA = lastKeyForTime(keys, targetTime);
+
+		if (keyA == null)
+			keyA = keys[keys.length - 1];
+
+		if (keyA == null)
+			return varDef.variableValue;
+
+		SpriterVarlineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
+
+		if (keyB == null)
+			return keyA.variableValue;
+
+		float adjustedTime = keyA.time == keyB.time ? targetTime : adjustTime(keyA, keyB, animation.length, targetTime);
+		float factor = getFactor(keyA, keyB, animation.length, adjustedTime);
+
+		return interpolate(keyA.variableValue, keyB.variableValue, factor);
+	}
+
+	private static void addEventData(SpriterAnimation animation, float targetTime, float deltaTime, FrameMetadata metadata) {
+		if (animation.eventlines == null)
+			return;
+
+		float previousTime = targetTime - deltaTime;
+		for (SpriterEventline eventline : animation.eventlines)
+			for (SpriterKey key : eventline.keys)
+				if (isTriggered(key, targetTime, previousTime, animation.length))
+					metadata.events.add(eventline.name);
+	}
+
+	private static void addSoundData(SpriterAnimation animation, float targetTime, float deltaTime, FrameMetadata metadata) {
+		if (animation.soundlines == null)
+			return;
+
+		float previousTime = targetTime - deltaTime;
+		for (SpriterSoundline soundline : animation.soundlines) {
+			for (SpriterSoundlineKey key : soundline.keys) {
+				SpriterSound sound = key.soundObject;
+				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length))
+					metadata.sounds.add(sound);
+			}
+		}
+	}
+	
+	private static boolean isTriggered(SpriterKey key, float targetTime, float previousTime, float animationLength) {
+		System.out.println("Target: " + targetTime);
+		System.out.println("Previous: " + previousTime);
+		
+		float min = Math.min(previousTime, targetTime);
+		float max = Math.max(previousTime, targetTime);
+
+		if (min > max) {
+			if (min < key.time)
+				max += animationLength;
+			else
+				min -= animationLength;
+		}
+		return min <= key.time && max >= key.time;
+	}
+	
+	private static SpriterObjectInfo getObjectInfo(SpriterAnimation animation, String name) {
+		SpriterObjectInfo objInfo = null;
+		for (SpriterObjectInfo info : animation.entity.objectInfos) {
+			if (info.name == name) {
+				objInfo = info;
+				break;
+			}
+		}
+
+		return objInfo;
+	}
+
+	private static SpriterVarValue interpolate(SpriterVarValue valA, SpriterVarValue valB, float factor) {
+		SpriterVarValue value = new SpriterVarValue();
+
+		value.type = valA.type;
+		value.stringValue = valA.stringValue;
+		value.floatValue = MathHelper.linear(valA.floatValue, valB.floatValue, factor);
+		value.intValue = (int) MathHelper.linear(valA.intValue, valB.intValue, factor);
+
+		return value;
+	}
+
+}

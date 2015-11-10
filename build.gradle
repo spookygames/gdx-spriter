@@ -1,0 +1,33 @@
+apply plugin: 'java'
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+sourceCompatibility = 1.6
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+ext.gdxVersion = '1.5.5'
+
+dependencies {
+    compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.unitils:unitils-core:3.4.2'
+    testCompile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
+    testCompile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
+    testCompile 'net.dermetfan.libgdx-utils:libgdx-utils:0.10.0'
+}
+
+task demoJar(type: Jar) {
+	baseName = "${project.name}-demo"
+	
+    from files(sourceSets.main.output.classesDir)
+	from sourceSets.test.output
+    from {configurations.compile.collect {zipTree(it)}}
+    from {configurations.testCompile.collect {zipTree(it)}}
+	
+    manifest {
+        attributes 'Main-Class': "com.badlogic.gdx.spriter.SpriterDemo"
+    }
+}

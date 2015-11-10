@@ -1,0 +1,338 @@
+{
+	"entity": [
+		{
+			"animation": [
+				{
+					"gline": [],
+					"id": 0,
+					"interval": 100,
+					"length": 2000,
+					"mainline": {
+						"key": [
+							{
+								"bone_ref": [],
+								"id": 0,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 0,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								]
+							},
+							{
+								"bone_ref": [],
+								"id": 1,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 1,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 773
+							},
+							{
+								"bone_ref": [],
+								"id": 2,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 2,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 871
+							},
+							{
+								"bone_ref": [],
+								"id": 3,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 3,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 975
+							},
+							{
+								"bone_ref": [],
+								"id": 4,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 4,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 1820
+							},
+							{
+								"bone_ref": [],
+								"id": 5,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 5,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 1900
+							},
+							{
+								"bone_ref": [],
+								"id": 6,
+								"object_ref": [
+									{
+										"id": 0,
+										"key": 0,
+										"timeline": "0",
+										"z_index": "0"
+									},
+									{
+										"id": 1,
+										"key": 6,
+										"timeline": "1",
+										"z_index": "1"
+									}
+								],
+								"time": 1986
+							}
+						]
+					},
+					"meta": {
+						"valline": [
+							{
+								"def": 0,
+								"id": 0,
+								"key": [
+									{
+										"id": 0,
+										"time": 2,
+										"val": ""
+									},
+									{
+										"id": 1,
+										"time": 871,
+										"val": "B"
+									},
+									{
+										"id": 2,
+										"time": 1901,
+										"val": "A"
+									}
+								]
+							}
+						]
+					},
+					"name": "Letter Cycle",
+					"timeline": [
+						{
+							"id": 0,
+							"key": [
+								{
+									"id": 0,
+									"object": {
+										"angle": 0,
+										"file": 0,
+										"folder": 0,
+										"x": -5,
+										"y": 8
+									},
+									"spin": 0
+								}
+							],
+							"name": "Robot"
+						},
+						{
+							"id": 1,
+							"key": [
+								{
+									"id": 0,
+									"object": {
+										"angle": 0,
+										"file": 1,
+										"folder": 0,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0
+								},
+								{
+									"id": 1,
+									"object": {
+										"angle": 0,
+										"file": 1,
+										"folder": 0,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 773
+								},
+								{
+									"id": 2,
+									"object": {
+										"angle": 0,
+										"file": 2,
+										"folder": 0,
+										"scale_x": 0.205128,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 871
+								},
+								{
+									"id": 3,
+									"object": {
+										"angle": 0,
+										"file": 2,
+										"folder": 0,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 975
+								},
+								{
+									"id": 4,
+									"object": {
+										"angle": 0,
+										"file": 2,
+										"folder": 0,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 1820
+								},
+								{
+									"id": 5,
+									"object": {
+										"angle": 0,
+										"file": 1,
+										"folder": 0,
+										"scale_x": 0.102564,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 1900
+								},
+								{
+									"id": 6,
+									"object": {
+										"angle": 0,
+										"file": 1,
+										"folder": 0,
+										"x": -1,
+										"y": 45
+									},
+									"spin": 0,
+									"time": 1986
+								}
+							],
+							"name": "A"
+						}
+					]
+				}
+			],
+			"character_map": [],
+			"id": 0,
+			"name": "Letter Bot",
+			"obj_info": [],
+			"var_defs": [
+				{
+					"default": "A",
+					"id": 0,
+					"name": "current letter",
+					"type": "string"
+				}
+			]
+		}
+	],
+	"folder": [
+		{
+			"file": [
+				{
+					"height": 106,
+					"id": 0,
+					"name": "Robot.png",
+					"pivot_x": 0.463158,
+					"pivot_y": 0.13207499999999994,
+					"width": 95
+				},
+				{
+					"height": 23,
+					"id": 1,
+					"name": "A.png",
+					"pivot_x": 0.486486,
+					"pivot_y": 0.521739,
+					"width": 37
+				},
+				{
+					"height": 23,
+					"id": 2,
+					"name": "B.png",
+					"pivot_x": 0.486486,
+					"pivot_y": 0.521739,
+					"width": 37
+				}
+			],
+			"id": 0
+		}
+	],
+	"generator": "BrashMonkey Spriter",
+	"generator_version": "r4.1",
+	"scon_version": "1.0",
+	"tag_list": [
+		{
+			"id": 0,
+			"name": "StuckInMove"
+		}
+	]
+}

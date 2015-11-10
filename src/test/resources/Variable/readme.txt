@@ -1,0 +1,1 @@
+This scml uses a string type Variable in the main metadata to keep track of the current letter thats being displayed by the robot.
