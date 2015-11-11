@@ -18,8 +18,12 @@ import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterFile;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.spriter.data.SpriterObject;
+import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
 import com.badlogic.gdx.spriter.data.SpriterTimeline;
 import com.badlogic.gdx.spriter.data.SpriterTimelineKey;
+import com.badlogic.gdx.spriter.data.SpriterVarDef;
+import com.badlogic.gdx.spriter.data.SpriterVarline;
+import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 import com.badlogic.gdx.utils.Array;
 
 public abstract class SpriterReader {
@@ -38,19 +42,36 @@ public abstract class SpriterReader {
 
 	public abstract SpriterData load(Reader reader) throws IOException;
 
-	public void cleanData(SpriterData data) {
+	public void initializeData(SpriterData data) {
 		for (SpriterEntity entity : data.entities) {
 			entity.data = data;
 			for (SpriterAnimation a : entity.animations) {
 				a.entity = entity;
+				
+				// Initialize objects
 				for (SpriterTimeline t : a.timelines)
 					for (SpriterTimelineKey k : t.keys)
-						cleanObject(k.objectInfo, data.folders);
+						initializeObject(k.objectInfo, data.folders);
+				
+				// Initialize vardefs
+		        if (a.meta != null) {
+		        	
+			        for (SpriterVarline v : a.meta.varlines)
+			        	initializeVarline(v, entity.variables.get(v.def));
+			        
+			        for(SpriterTimeline timeline : a.timelines)
+			        	if(timeline.meta != null)
+			        		for(SpriterVarline v : timeline.meta.varlines)
+			        			for(SpriterObjectInfo o : entity.objectInfos)
+			        				if(timeline.name.equals(o.name))
+			        					initializeVarline(v, o.variables.get(v.def));
+			        
+		        }
 			}
 		}
 	}
 
-	private void cleanObject(SpriterObject o, Array<SpriterFolder> folders) {
+	private void initializeObject(SpriterObject o, Array<SpriterFolder> folders) {
 		if (o == null)
 			return;
 		if (Float.isNaN(o.pivotX) || Float.isNaN(o.pivotY)) {
@@ -59,4 +80,11 @@ public abstract class SpriterReader {
 			o.pivotY = file.pivotY;
 		}
 	}
+	
+	private void initializeVarline(SpriterVarline varline, SpriterVarDef varDef) {
+        varDef.variableValue = varDef.type.buildVarValue(varDef.defaultValue);
+        for (SpriterVarlineKey key : varline.keys)
+        	key.variableValue = varDef.type.buildVarValue(key.value);
+    }
+
 }

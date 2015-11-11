@@ -16,7 +16,6 @@ dependencies {
     testCompile 'org.unitils:unitils-core:3.4.2'
     testCompile "com.badlogicgames.gdx:gdx-backend-lwjgl:$gdxVersion"
     testCompile "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-    testCompile 'net.dermetfan.libgdx-utils:libgdx-utils:0.10.0'
 }
 
 task demoJar(type: Jar) {

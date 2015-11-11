@@ -42,7 +42,7 @@ public class SCMLReaderTest {
     	
     	SCMLReader reader = new SCMLReader();
 
-    	reader.cleanData(data);
+    	reader.initializeData(data);
 
     	SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
     	SpriterFile file = data.folders.get(object.folderId).files.get(object.fileId);

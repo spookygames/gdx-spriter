@@ -24,7 +24,7 @@ import com.badlogic.gdx.utils.ObjectMap;
 
 public class SpriterAnimator {
 
-	private final Array<AnimationListener> listeners = new Array<AnimationListener>();
+	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
 	private SpriterData spriterData;
 	private SpriterEntity entity;
@@ -40,8 +40,6 @@ public class SpriterAnimator {
 	private float time;
 	private float x;
 	private float y;
-
-	private FrameMetadata metadata;
 
 	private final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
 
@@ -62,7 +60,7 @@ public class SpriterAnimator {
 		speed = 1.0f;
 		play(animations.keys().next());
 
-		metadata = new FrameMetadata();
+		metaData = new FrameMetadata();
 	}
 
 	public float getProgress() {
@@ -73,7 +71,7 @@ public class SpriterAnimator {
 		this.time = progress * length;
 	}
 
-	public Array<AnimationListener> getListeners() {
+	public Array<SpriterAnimationListener> getListeners() {
 		return listeners;
 	}
 
@@ -139,7 +137,7 @@ public class SpriterAnimator {
 	}
 
 	public FrameMetadata getMetadata() {
-		return metadata;
+		return metaData;
 	}
 
 	public float getTotalTransitionTime() {
@@ -210,7 +208,7 @@ public class SpriterAnimator {
 			else
 				time = 0.0f;
 
-			for (AnimationListener listener : listeners)
+			for (SpriterAnimationListener listener : listeners)
 				listener.onAnimationFinished(name);
 		} else if (time >= length) {
 			if (currentAnimation.looping)
@@ -218,7 +216,7 @@ public class SpriterAnimator {
 			else
 				time = length;
 
-			for (AnimationListener listener : listeners)
+			for (SpriterAnimationListener listener : listeners)
 				listener.onAnimationFinished(name);
 		}
 
@@ -286,7 +284,7 @@ public class SpriterAnimator {
 	}
 
 	protected void dispatchEvent(String eventName) {
-		for (AnimationListener listener : listeners)
+		for (SpriterAnimationListener listener : listeners)
 			listener.onEventTriggered(eventName);
 	}
 

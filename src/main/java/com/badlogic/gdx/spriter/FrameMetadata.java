@@ -83,12 +83,10 @@ public class FrameMetadata {
 		if (animation.meta == null)
 			return;
 
-		if (animation.meta.varlines != null) {
 			for (SpriterVarline varline : animation.meta.varlines) {
 				SpriterVarDef variable = animation.entity.variables.get(varline.def);
 				metadata.animationVars.put(variable.name, getVariableValue(animation, variable, varline, targetTime));
 			}
-		}
 
 		SpriterElement[] tags = animation.entity.data.tags.toArray(SpriterElement.class);
 		SpriterTagline tagline = animation.meta.tagline;
@@ -96,7 +94,7 @@ public class FrameMetadata {
 		if (tagline != null) {
 			SpriterTaglineKey key = lastKeyForTime(tagline.keys.toArray(), targetTime);
 
-			if (key != null && key.tags != null)
+			if (key != null)
 				for (SpriterTag tag : key.tags)
 					metadata.animationTags.add(tags[tag.tagId].name);
 		}
@@ -180,9 +178,6 @@ public class FrameMetadata {
 	}
 	
 	private static boolean isTriggered(SpriterKey key, float targetTime, float previousTime, float animationLength) {
-		System.out.println("Target: " + targetTime);
-		System.out.println("Previous: " + previousTime);
-		
 		float min = Math.min(previousTime, targetTime);
 		float max = Math.max(previousTime, targetTime);
 
@@ -198,7 +193,7 @@ public class FrameMetadata {
 	private static SpriterObjectInfo getObjectInfo(SpriterAnimation animation, String name) {
 		SpriterObjectInfo objInfo = null;
 		for (SpriterObjectInfo info : animation.entity.objectInfos) {
-			if (info.name == name) {
+			if (info.name.equals(name)) {
 				objInfo = info;
 				break;
 			}

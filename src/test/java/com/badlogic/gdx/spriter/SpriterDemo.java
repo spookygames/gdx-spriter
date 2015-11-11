@@ -21,9 +21,6 @@ public class SpriterDemo {
 		config.width = 1024;
 		config.height = 768;
 		
-		config.x = 2250;
-		
-		
 		new LwjglApplication(listener, config);
 	}
 }

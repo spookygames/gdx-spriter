@@ -5,7 +5,7 @@
 
 package com.badlogic.gdx.spriter;
 
-public interface AnimationListener {
+public interface SpriterAnimationListener {
 
 	public void onAnimationFinished(String animationName);
 

@@ -60,7 +60,7 @@ public class SCONReader extends SpriterReader {
 		loadData(data, root);
 
 		// Then clean up...
-		cleanData(data);
+		initializeData(data);
 
 		return data;
 	}

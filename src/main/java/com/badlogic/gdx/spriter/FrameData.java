@@ -36,11 +36,11 @@ public class FrameData {
 
 		float targetTimeSecond = targetTime / first.length * second.length;
 
-		SpriterMainlineKey[] keys = getMainlineKeys(first.mainline.keys.toArray(), targetTime);
+		SpriterMainlineKey[] keys = getMainlineKeys(first.mainline.keys.toArray(SpriterMainlineKey.class), targetTime);
 		SpriterMainlineKey firstKeyA = keys[0];
 		SpriterMainlineKey firstKeyB = keys[1];
 
-		keys = getMainlineKeys(second.mainline.keys.toArray(), targetTimeSecond);
+		keys = getMainlineKeys(second.mainline.keys.toArray(SpriterMainlineKey.class), targetTimeSecond);
 		SpriterMainlineKey secondKeyA = keys[0];
 		SpriterMainlineKey secondKeyB = keys[1];
 

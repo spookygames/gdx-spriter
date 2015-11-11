@@ -56,7 +56,7 @@ public class SCMLReader extends SpriterReader {
 		loadData(data, new XmlReader().parse(reader));
 
 		// Then clean up...
-		cleanData(data);
+		initializeData(data);
 
 		return data;
 	}
