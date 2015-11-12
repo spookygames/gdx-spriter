@@ -69,15 +69,5 @@
 		    listStyle: default,
 	    }
     },
-	"net.dermetfan.gdx.scenes.scene2d.ui.TreeFileChooser$Style": {
-	    "default": {
-	        "treeStyle": "default",
-	        "scrollPaneStyle": "default",
-	        "labelStyle": "default",
-	        "selectButtonStyle": "default",
-	        "cancelButtonStyle": "default",
-	        "background": "default"
-	    }
-	},
 }
 
