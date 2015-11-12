@@ -20,15 +20,6 @@ import com.badlogic.gdx.utils.IntMap;
 
 public class FrameData {
 
-	public final Array<SpriterObject> spriteData = new Array<SpriterObject>();
-	public final Array<SpriterObject> pointData = new Array<SpriterObject>();
-	public final IntMap<SpriterObject> boxData = new IntMap<SpriterObject>();
-	
-	@Override
-	public String toString() {
-		return "FrameData [spriteData=" + spriteData + ", pointData=" + pointData + ", boxData=" + boxData + "]";
-	}
-	
 	public static FrameData create(SpriterAnimation first, SpriterAnimation second, float targetTime, float factor) {
 
 		if (first == second)
@@ -36,11 +27,11 @@ public class FrameData {
 
 		float targetTimeSecond = targetTime / first.length * second.length;
 
-		SpriterMainlineKey[] keys = getMainlineKeys(first.mainline.keys.toArray(SpriterMainlineKey.class), targetTime);
+		SpriterMainlineKey[] keys = getMainlineKeys(first.mainline.keys, targetTime);
 		SpriterMainlineKey firstKeyA = keys[0];
 		SpriterMainlineKey firstKeyB = keys[1];
 
-		keys = getMainlineKeys(second.mainline.keys.toArray(SpriterMainlineKey.class), targetTimeSecond);
+		keys = getMainlineKeys(second.mainline.keys, targetTimeSecond);
 		SpriterMainlineKey secondKeyA = keys[0];
 		SpriterMainlineKey secondKeyB = keys[1];
 
@@ -83,21 +74,21 @@ public class FrameData {
 			if (boneInfos != null && objectRefFirst.parentId >= 0)
 				applyParentTransform(info, boneInfos[objectRefFirst.parentId]);
 
-			addSpatialData(info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, targetTime, frameData);
+			frameData.addSpatialData(info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, targetTime);
 		}
 
 		return frameData;
 	}
-	
+
 	public static FrameData create(SpriterAnimation animation, float targetTime) {
 		return create(animation, targetTime, null);
 	}
-	
+
 	public static FrameData create(SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
-		SpriterMainlineKey[] keys = animation.mainline.keys.toArray(SpriterMainlineKey.class);
-		keys = getMainlineKeys(keys, targetTime);
-		SpriterMainlineKey keyA = keys[0];
-		SpriterMainlineKey keyB = keys[1];
+		Array<SpriterMainlineKey> keys = animation.mainline.keys;
+		SpriterMainlineKey[] someKeys = getMainlineKeys(keys, targetTime);
+		SpriterMainlineKey keyA = someKeys[0];
+		SpriterMainlineKey keyB = someKeys[1];
 
 		float adjustedTime = adjustTime(keyA, keyB, animation.length, targetTime);
 
@@ -111,27 +102,31 @@ public class FrameData {
 			if (boneInfos != null && objectRef.parentId >= 0)
 				applyParentTransform(interpolated, boneInfos[objectRef.parentId]);
 
-			addSpatialData(interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, targetTime, frameData);
+			frameData.addSpatialData(interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, targetTime);
 		}
 
 		return frameData;
 	}
-	
-	private static void addSpatialData(SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime, FrameData frameData) {
+
+	public final Array<SpriterObject> spriteData = new Array<SpriterObject>();
+	public final Array<SpriterObject> pointData = new Array<SpriterObject>();
+	public final IntMap<SpriterObject> boxData = new IntMap<SpriterObject>();
+
+	private void addSpatialData(SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime) {
 		switch (timeline.objectType) {
 		case Sprite:
-			frameData.spriteData.add(info);
+			this.spriteData.add(info);
 			break;
 		case Entity:
 			SpriterAnimation newAnim = spriter.entities.get(info.entityId).animations.get(info.animationId);
 			float newTargetTime = info.t * newAnim.length;
-			frameData.spriteData.addAll(FrameData.create(newAnim, newTargetTime, info).spriteData);
+			this.spriteData.addAll(FrameData.create(newAnim, newTargetTime, info).spriteData);
 			break;
 		case Point:
-			frameData.pointData.add(info);
+			this.pointData.add(info);
 			break;
 		case Box:
-			frameData.boxData.put(timeline.objectId, info);
+			this.boxData.put(timeline.objectId, info);
 			break;
 		default:
 			break;
@@ -141,7 +136,7 @@ public class FrameData {
 	private static SpriterSpatial[] getBoneInfos(SpriterMainlineKey key, SpriterAnimation animation, float targetTime) {
 		return getBoneInfos(key, animation, targetTime, null);
 	}
-	
+
 	private static SpriterSpatial[] getBoneInfos(SpriterMainlineKey key, SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
 		if (key.boneRefs == null)
 			return null;
@@ -161,22 +156,20 @@ public class FrameData {
 		return ret;
 	}
 
-	
-	
-	private static SpriterMainlineKey[] getMainlineKeys(SpriterMainlineKey[] keys, float targetTime) {
+	private static SpriterMainlineKey[] getMainlineKeys(Array<SpriterMainlineKey> keys, float targetTime) {
 		SpriterMainlineKey keyA = lastKeyForTime(keys, targetTime);
 		int nextKey = keyA.id + 1;
-		if (nextKey >= keys.length)
+		if (nextKey >= keys.size)
 			nextKey = 0;
-		SpriterMainlineKey keyB = keys[nextKey];
+		SpriterMainlineKey keyB = keys.get(nextKey);
 
 		return new SpriterMainlineKey[] { keyA, keyB };
 	}
 
 	private static SpriterSpatial getBoneInfo(SpriterRef spriterRef, SpriterAnimation animation, float targetTime) {
 		SpriterTimeline timeline = animation.timelines.get(spriterRef.timelineId);
-		SpriterTimelineKey[] keys = timeline.keys.toArray(SpriterTimelineKey.class);
-		SpriterTimelineKey keyA = keys[spriterRef.keyId];
+		Array<SpriterTimelineKey> keys = timeline.keys;
+		SpriterTimelineKey keyA = keys.get(spriterRef.keyId);
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
 		if (keyB == null)
@@ -187,8 +180,8 @@ public class FrameData {
 	}
 
 	private static SpriterObject getObjectInfo(SpriterRef spriterRef, SpriterAnimation animation, float targetTime) {
-		SpriterTimelineKey[] keys = animation.timelines.get(spriterRef.timelineId).keys.toArray(SpriterTimelineKey.class);
-		SpriterTimelineKey keyA = keys[spriterRef.keyId];
+		Array<SpriterTimelineKey> keys = animation.timelines.get(spriterRef.timelineId).keys;
+		SpriterTimelineKey keyA = keys.get(spriterRef.keyId);
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
 		if (keyB == null)
@@ -197,10 +190,6 @@ public class FrameData {
 		float factor = getFactor(keyA, keyB, animation.length, targetTime);
 		return interpolate(keyA.objectInfo, keyB.objectInfo, factor, keyA.spin);
 	}
-
-	
-
-	
 
 	private static SpriterSpatial interpolate(SpriterSpatial a, SpriterSpatial b, float f, int spin) {
 		SpriterSpatial spatial = new SpriterSpatial();
@@ -284,7 +273,7 @@ public class FrameData {
 		float factor = getFactor(keyA, keyB, animationLength, targetTime);
 		return MathHelper.linear(keyA.time, nextTime, factor);
 	}
-	
+
 	public static float getFactor(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
 		float timeA = keyA.time;
 		float timeB = keyB.time;
@@ -299,8 +288,8 @@ public class FrameData {
 		factor = keyA.curveType.applySpeedCurve(keyA, factor);
 		return factor;
 	}
-	
-	public static <T extends SpriterKey> T lastKeyForTime(T[] keys, float targetTime) {
+
+	public static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
 		T current = null;
 		for (T key : keys) {
 			if (key.time > targetTime)
@@ -311,18 +300,23 @@ public class FrameData {
 		return current;
 	}
 
-	public static <T extends SpriterKey> T getNextXLineKey(T[] keys, T firstKey, boolean looping) {
-		if (keys.length == 1)
+	public static <T extends SpriterKey> T getNextXLineKey(Array<T> keys, T firstKey, boolean looping) {
+		if (keys.size < 2)
 			return null;
 
 		int keyBId = firstKey.id + 1;
-		if (keyBId >= keys.length) {
+		if (keyBId >= keys.size) {
 			if (!looping)
 				return null;
 			keyBId = 0;
 		}
 
-		return keys[keyBId];
+		return keys.get(keyBId);
 	}
-	
+
+	@Override
+	public String toString() {
+		return "FrameData [spriteData=" + spriteData + ", pointData=" + pointData + ", boxData=" + boxData + "]";
+	}
+
 }

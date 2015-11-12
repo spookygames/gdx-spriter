@@ -19,7 +19,6 @@ import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
 import com.badlogic.gdx.spriter.data.SpriterSound;
 import com.badlogic.gdx.spriter.data.SpriterSoundline;
 import com.badlogic.gdx.spriter.data.SpriterSoundlineKey;
-import com.badlogic.gdx.spriter.data.SpriterSpatial;
 import com.badlogic.gdx.spriter.data.SpriterTag;
 import com.badlogic.gdx.spriter.data.SpriterTagline;
 import com.badlogic.gdx.spriter.data.SpriterTaglineKey;
@@ -33,6 +32,18 @@ import com.badlogic.gdx.utils.ObjectMap;
 
 public class FrameMetadata {
 
+	public static FrameMetadata create(SpriterAnimation first, SpriterAnimation second, float targetTime, float deltaTime, float factor) {
+		return create(factor < 0.5f ? first : second, targetTime, deltaTime);
+	}
+
+	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime) {
+		FrameMetadata metadata = new FrameMetadata();
+		metadata.addVariableAndTagData(animation, targetTime);
+		metadata.addEventData(animation, targetTime, deltaTime);
+		metadata.addSoundData(animation, targetTime, deltaTime);
+		return metadata;
+	}
+
 	public final ObjectMap<String, SpriterVarValue> animationVars = new ObjectMap<String, SpriterVarValue>();
 	public final ObjectMap<String, ObjectMap<String, SpriterVarValue>> objectVars = new ObjectMap<String, ObjectMap<String, SpriterVarValue>>();
 	public final Array<String> animationTags = new Array<String>();
@@ -40,7 +51,7 @@ public class FrameMetadata {
 	public final Array<String> events = new Array<String>();
 	public final Array<SpriterSound> sounds = new Array<SpriterSound>();
 
-	public void addObjectVar(String objectName, String varName, SpriterVarValue value) {
+	private void addObjectVar(String objectName, String varName, SpriterVarValue value) {
 		ObjectMap<String, SpriterVarValue> values = objectVars.get(objectName);
 		if (values == null) {
 			values = new ObjectMap<String, SpriterVarValue>();
@@ -49,7 +60,7 @@ public class FrameMetadata {
 		values.put(varName, value);
 	}
 
-	public void addObjectTag(String objectName, String tag) {
+	private void addObjectTag(String objectName, String tag) {
 		Array<String> tags = objectTags.get(objectName);
 		if (tags == null) {
 			tags = new Array<String>();
@@ -58,45 +69,24 @@ public class FrameMetadata {
 		tags.add(tag);
 	}
 
-	@Override
-	public String toString() {
-		return "FrameMetadata [animationVars=" + animationVars + ", objectVars=" + objectVars + ", animationTags=" + animationTags + ", objectTags=" + objectTags + ", events=" + events + ", sounds=" + sounds + "]";
-	}
-	
-	public static FrameMetadata create(SpriterAnimation first, SpriterAnimation second, float targetTime, float deltaTime, float factor) {
-		return create(factor < 0.5f ? first : second, targetTime, deltaTime);
-	}
-
-	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime) {
-		return create(animation, targetTime, deltaTime, null);
-	}
-
-	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime, SpriterSpatial parentInfo) {
-		FrameMetadata metadata = new FrameMetadata();
-		addVariableAndTagData(animation, targetTime, metadata);
-		addEventData(animation, targetTime, deltaTime, metadata);
-		addSoundData(animation, targetTime, deltaTime, metadata);
-		return metadata;
-	}
-	
-	private static void addVariableAndTagData(SpriterAnimation animation, float targetTime, FrameMetadata metadata) {
+	private void addVariableAndTagData(SpriterAnimation animation, float targetTime) {
 		if (animation.meta == null)
 			return;
 
-			for (SpriterVarline varline : animation.meta.varlines) {
-				SpriterVarDef variable = animation.entity.variables.get(varline.def);
-				metadata.animationVars.put(variable.name, getVariableValue(animation, variable, varline, targetTime));
-			}
+		for (SpriterVarline varline : animation.meta.varlines) {
+			SpriterVarDef variable = animation.entity.variables.get(varline.def);
+			this.animationVars.put(variable.name, getVariableValue(animation, variable, varline, targetTime));
+		}
 
-		SpriterElement[] tags = animation.entity.data.tags.toArray(SpriterElement.class);
+		Array<SpriterElement> tags = animation.entity.data.tags;
 		SpriterTagline tagline = animation.meta.tagline;
 
 		if (tagline != null) {
-			SpriterTaglineKey key = lastKeyForTime(tagline.keys.toArray(), targetTime);
+			SpriterTaglineKey key = lastKeyForTime(tagline.keys, targetTime);
 
 			if (key != null)
 				for (SpriterTag tag : key.tags)
-					metadata.animationTags.add(tags[tag.tagId].name);
+					this.animationTags.add(tags.get(tag.tagId).name);
 		}
 
 		for (SpriterTimeline timeline : animation.timelines) {
@@ -106,29 +96,29 @@ public class FrameMetadata {
 				continue;
 
 			SpriterObjectInfo objInfo = getObjectInfo(animation, timeline.name);
-			
-			if(objInfo == null)
+
+			if (objInfo == null)
 				continue;
 
 			if (meta.varlines != null) {
 				for (SpriterVarline varline : timeline.meta.varlines) {
 					SpriterVarDef variable = objInfo.variables.get(varline.def);
-					metadata.addObjectVar(objInfo.name, variable.name, getVariableValue(animation, variable, varline, targetTime));
+					this.addObjectVar(objInfo.name, variable.name, getVariableValue(animation, variable, varline, targetTime));
 				}
 			}
 
 			if (meta.tagline != null) {
-				SpriterTaglineKey key = lastKeyForTime(tagline.keys.toArray(), targetTime);
+				SpriterTaglineKey key = lastKeyForTime(tagline.keys, targetTime);
 
 				if (key != null && key.tags != null)
 					for (SpriterTag tag : key.tags)
-						metadata.addObjectTag(objInfo.name, tags[tag.tagId].name);
+						this.addObjectTag(objInfo.name, tags.get(tag.tagId).name);
 			}
 		}
 	}
-	
+
 	private static SpriterVarValue getVariableValue(SpriterAnimation animation, SpriterVarDef varDef, SpriterVarline varline, float targetTime) {
-		SpriterVarlineKey[] keys = varline.keys.toArray(SpriterVarlineKey.class);
+		Array<SpriterVarlineKey> keys = varline.keys;
 
 		if (keys == null)
 			return varDef.variableValue;
@@ -136,7 +126,7 @@ public class FrameMetadata {
 		SpriterVarlineKey keyA = lastKeyForTime(keys, targetTime);
 
 		if (keyA == null)
-			keyA = keys[keys.length - 1];
+			keyA = keys.peek();
 
 		if (keyA == null)
 			return varDef.variableValue;
@@ -152,7 +142,7 @@ public class FrameMetadata {
 		return interpolate(keyA.variableValue, keyB.variableValue, factor);
 	}
 
-	private static void addEventData(SpriterAnimation animation, float targetTime, float deltaTime, FrameMetadata metadata) {
+	private void addEventData(SpriterAnimation animation, float targetTime, float deltaTime) {
 		if (animation.eventlines == null)
 			return;
 
@@ -160,10 +150,10 @@ public class FrameMetadata {
 		for (SpriterEventline eventline : animation.eventlines)
 			for (SpriterKey key : eventline.keys)
 				if (isTriggered(key, targetTime, previousTime, animation.length))
-					metadata.events.add(eventline.name);
+					this.events.add(eventline.name);
 	}
 
-	private static void addSoundData(SpriterAnimation animation, float targetTime, float deltaTime, FrameMetadata metadata) {
+	private void addSoundData(SpriterAnimation animation, float targetTime, float deltaTime) {
 		if (animation.soundlines == null)
 			return;
 
@@ -172,11 +162,11 @@ public class FrameMetadata {
 			for (SpriterSoundlineKey key : soundline.keys) {
 				SpriterSound sound = key.soundObject;
 				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length))
-					metadata.sounds.add(sound);
+					this.sounds.add(sound);
 			}
 		}
 	}
-	
+
 	private static boolean isTriggered(SpriterKey key, float targetTime, float previousTime, float animationLength) {
 		float min = Math.min(previousTime, targetTime);
 		float max = Math.max(previousTime, targetTime);
@@ -189,7 +179,7 @@ public class FrameMetadata {
 		}
 		return min <= key.time && max >= key.time;
 	}
-	
+
 	private static SpriterObjectInfo getObjectInfo(SpriterAnimation animation, String name) {
 		SpriterObjectInfo objInfo = null;
 		for (SpriterObjectInfo info : animation.entity.objectInfos) {
@@ -211,6 +201,11 @@ public class FrameMetadata {
 		value.intValue = (int) MathHelper.linear(valA.intValue, valB.intValue, factor);
 
 		return value;
+	}
+
+	@Override
+	public String toString() {
+		return "FrameMetadata [animationVars=" + animationVars + ", objectVars=" + objectVars + ", animationTags=" + animationTags + ", objectTags=" + objectTags + ", events=" + events + ", sounds=" + sounds + "]";
 	}
 
 }
