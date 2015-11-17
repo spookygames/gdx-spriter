@@ -185,7 +185,8 @@ public class SpriterAnimator {
 	}
 
 	public void update(float deltaTime) {
-		float elapsed = (deltaTime * 1000f) * speed;
+		deltaTime *= 1000f;	// We're talking milliseconds here
+		float elapsed = deltaTime * speed;
 
 		if (nextAnimation != null && totalTransitionTime != 0.0f) {
 			elapsed += elapsed * factor * currentAnimation.length / nextAnimation.length;
@@ -272,7 +273,7 @@ public class SpriterAnimator {
 	}
 
 	protected void playSound(Sound sound, SpriterSound info) {
-		sound.play(info.volume, 0.0f, info.panning);
+		sound.play(info.volume, 1.0f, info.panning);
 	}
 
 	protected void drawPoint(ShapeRenderer shapeRenderer, SpriterObject info) {

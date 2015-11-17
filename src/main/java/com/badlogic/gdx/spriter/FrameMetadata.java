@@ -154,7 +154,7 @@ public class FrameMetadata {
 	}
 
 	private void addSoundData(SpriterAnimation animation, float targetTime, float deltaTime) {
-		if (animation.soundlines == null)
+		if (animation.soundlines.size == 0)
 			return;
 
 		float previousTime = targetTime - deltaTime;
