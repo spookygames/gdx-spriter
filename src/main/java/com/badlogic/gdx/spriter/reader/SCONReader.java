@@ -16,6 +16,7 @@ import com.badlogic.gdx.spriter.data.SpriterElement;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterEventline;
 import com.badlogic.gdx.spriter.data.SpriterFile;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterFileType;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.spriter.data.SpriterKey;
@@ -213,10 +214,19 @@ public class SCONReader extends SpriterReader {
 	}
 
 	private void loadMapInstruction(SpriterMapInstruction instruction, JsonValue mapping) {
-		instruction.folderId = mapping.getInt("folder", instruction.folderId);
-		instruction.fileId = mapping.getInt("file", instruction.fileId);
-		instruction.targetFolderId = mapping.getInt("target_folder", instruction.targetFolderId);
-		instruction.targetFileId = mapping.getInt("target_file", instruction.targetFileId);
+		SpriterFileInfo source = new SpriterFileInfo();
+		loadFileInfo(source, mapping);
+		instruction.file = source;
+
+		SpriterFileInfo target = new SpriterFileInfo();
+		target.folderId = mapping.getInt("target_folder", -1);
+		target.fileId = mapping.getInt("target_file", -1);
+		instruction.target = target;
+	}
+
+	private void loadFileInfo(SpriterFileInfo file, JsonValue element) {
+		file.folderId = element.getInt("folder", file.folderId);
+		file.fileId = element.getInt("file", file.fileId);
 	}
 
 	private void loadAnimations(SpriterEntity entity, JsonValue animations) {
@@ -239,13 +249,13 @@ public class SCONReader extends SpriterReader {
 		animation.mainline = main;
 
 		loadTimelines(animation, animation.entity, a.get("timeline"));
-		
+
 		JsonValue eventLines = a.get("eventline");
-		if(eventLines != null)
+		if (eventLines != null)
 			loadEventlines(animation, eventLines);
-		
+
 		JsonValue soundLines = a.get("soundline");
-		if(soundLines != null)
+		if (soundLines != null)
 			loadSoundlines(animation, soundLines);
 
 		JsonValue xmlMeta = a.get("meta");
@@ -389,12 +399,14 @@ public class SCONReader extends SpriterReader {
 	private void loadObject(SpriterObject objectInfo, JsonValue element) {
 		loadSpatial(objectInfo, element);
 		objectInfo.animationId = element.getInt("animation", objectInfo.animationId);
-		objectInfo.fileId = element.getInt("file", objectInfo.fileId);
 		objectInfo.pivotX = element.getFloat("pivot_x", Float.NaN);
 		objectInfo.pivotY = element.getFloat("pivot_y", Float.NaN);
 		objectInfo.entityId = element.getInt("entity", objectInfo.entityId);
-		objectInfo.folderId = element.getInt("folder", objectInfo.folderId);
 		objectInfo.t = element.getFloat("t", objectInfo.t);
+
+		SpriterFileInfo file = new SpriterFileInfo();
+		loadFileInfo(file, element);
+		objectInfo.file = file;
 	}
 
 	private void loadEventlines(SpriterAnimation animation, JsonValue elements) {
@@ -456,16 +468,18 @@ public class SCONReader extends SpriterReader {
 
 	private void loadSound(SpriterSound sound, JsonValue element) {
 		loadElement(sound, element);
-		sound.folderId = element.getInt("folder", sound.folderId);
-		sound.fileId = element.getInt("file", sound.fileId);
 		sound.trigger = element.getBoolean("trigger", sound.trigger);
 		sound.panning = element.getFloat("panning", sound.panning);
 		sound.volume = element.getFloat("volume", sound.volume);
+
+		SpriterFileInfo file = new SpriterFileInfo();
+		loadFileInfo(file, element);
+		sound.file = file;
 	}
 
 	private void loadMeta(SpriterMeta meta, JsonValue element) {
 		JsonValue varlines = element.get("varline");
-		if(varlines != null)
+		if (varlines != null)
 			loadVarlines(meta, varlines);
 
 		JsonValue xmlTagline = element.get("tagline");

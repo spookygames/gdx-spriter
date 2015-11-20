@@ -7,14 +7,12 @@ package com.badlogic.gdx.spriter.data;
 
 public class SpriterMapInstruction {
 
-	public int folderId;
-	public int fileId;
-	public int targetFolderId = -1;
-	public int targetFileId = -1;
+	public SpriterFileInfo file;
+	public SpriterFileInfo target;
 
 	@Override
 	public String toString() {
-		return "SpriterMapInstruction [folderId=" + folderId + ", fileId=" + fileId + ", targetFolderId=" + targetFolderId + ", targetFileId=" + targetFileId + "]";
+		return "SpriterMapInstruction [file=" + file + ", target=" + target + "]";
 	}
 
 }

@@ -11,7 +11,6 @@ import java.io.Reader;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.unitils.reflectionassert.ReflectionAssert;
 
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
@@ -29,36 +28,38 @@ public class SCMLReaderTest {
 			Reader r = new InputStreamReader(getClass().getResourceAsStream(scml));
 
 			SCMLReader reader = new SCMLReader();
-			
+
 			SpriterData stuff = reader.load(r);
-			
+
 			Assert.assertNotNull(stuff);
 		}
 	}
-	
-    @Test
-    public void cleanData() {
-    	SpriterData data = SpriterTestData.data1;
-    	
-    	SCMLReader reader = new SCMLReader();
 
-    	reader.initializeData(data);
+	@Test
+	public void cleanData() {
+		SpriterData data = SpriterTestData.data1;
 
-    	SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
-    	SpriterFile file = data.folders.get(object.folderId).files.get(object.fileId);
-    	Assert.assertEquals(file.pivotX, object.pivotX, 0.01d);
-    	Assert.assertEquals(file.pivotY, object.pivotY, 0.01d);
-    }
-    
-    @Test
-    public void checkReadContent() throws IOException {
-    	String scml = SpriterTestData.letterbotSCML;
-    	SpriterData data = SpriterTestData.letterbotSCMLData;
-    	
+		SCMLReader reader = new SCMLReader();
+
+		reader.initializeData(data);
+
+		SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
+		SpriterFile file = data.folders.get(object.file.folderId).files.get(object.file.fileId);
+		Assert.assertEquals(file.pivotX, object.pivotX, 0.01d);
+		Assert.assertEquals(file.pivotY, object.pivotY, 0.01d);
+	}
+
+	@Test
+	public void checkReadContent() throws IOException {
+		String scml = SpriterTestData.letterbotSCML;
+		SpriterData data = SpriterTestData.letterbotSCMLData;
+
 		Reader r = new InputStreamReader(getClass().getResourceAsStream(scml));
 		SCMLReader reader = new SCMLReader();
 		SpriterData scmlData = reader.load(r);
 
-		ReflectionAssert.assertReflectionEquals(data, scmlData);
-    }
+		String ref = data.toString();
+		String actual = scmlData.toString();
+		Assert.assertEquals(ref, actual);
+	}
 }

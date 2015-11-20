@@ -8,9 +8,9 @@ package com.badlogic.gdx.spriter.data;
 public class SpriterVarValue {
 
 	public SpriterVarType type = SpriterVarType.String;
-	public String stringValue;
-	public float floatValue;
-	public int intValue;
+	public String stringValue = "";
+	public float floatValue = Float.MIN_VALUE;
+	public int intValue = Integer.MIN_VALUE;
 
 	@Override
 	public String toString() {

@@ -7,15 +7,14 @@ package com.badlogic.gdx.spriter.data;
 
 public class SpriterSound extends SpriterElement {
 
-	public int folderId;
-	public int fileId;
+	public SpriterFileInfo file;
 	public boolean trigger = true;
 	public float panning;
 	public float volume = 1.0f;
 
 	@Override
 	public String toString() {
-		return "SpriterSound [folderId=" + folderId + ", fileId=" + fileId + ", trigger=" + trigger + ", panning=" + panning + ", volume=" + volume + ", id=" + id + ", name=" + name + "]";
+		return "SpriterSound [file=" + file + ", trigger=" + trigger + ", panning=" + panning + ", volume=" + volume + ", id=" + id + ", name=" + name + "]";
 	}
 
 }

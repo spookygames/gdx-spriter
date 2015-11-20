@@ -11,7 +11,6 @@ import java.io.Reader;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.unitils.reflectionassert.ReflectionAssert;
 
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
@@ -28,36 +27,38 @@ public class SCONReaderTest {
 			Reader r = new InputStreamReader(getClass().getResourceAsStream(scon));
 
 			SCONReader reader = new SCONReader();
-			
+
 			SpriterData stuff = reader.load(r);
-			
+
 			Assert.assertNotNull(stuff);
 		}
 	}
-	
-    @Test
-    public void cleanData() {
-    	SpriterData data = SpriterTestData.data1;
-    	
-    	SCONReader reader = new SCONReader();
 
-    	reader.initializeData(data);
+	@Test
+	public void cleanData() {
+		SpriterData data = SpriterTestData.data1;
 
-    	SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
-    	SpriterFile file = data.folders.get(object.folderId).files.get(object.fileId);
-    	Assert.assertEquals(file.pivotX, object.pivotX, 0.01d);
-    	Assert.assertEquals(file.pivotY, object.pivotY, 0.01d);
-    }
-    
-    @Test
-    public void checkReadContent() throws IOException {
-    	String scon = SpriterTestData.letterbotSCON;
-    	SpriterData data = SpriterTestData.letterbotSCONData;
-    	
+		SCONReader reader = new SCONReader();
+
+		reader.initializeData(data);
+
+		SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
+		SpriterFile file = data.folders.get(object.file.folderId).files.get(object.file.fileId);
+		Assert.assertEquals(file.pivotX, object.pivotX, 0.01d);
+		Assert.assertEquals(file.pivotY, object.pivotY, 0.01d);
+	}
+
+	@Test
+	public void checkReadContent() throws IOException {
+		String scon = SpriterTestData.letterbotSCON;
+		SpriterData data = SpriterTestData.letterbotSCONData;
+
 		Reader r = new InputStreamReader(getClass().getResourceAsStream(scon));
 		SCONReader reader = new SCONReader();
 		SpriterData sconData = reader.load(r);
 
-		ReflectionAssert.assertReflectionEquals(data, sconData);
-    }
+		String ref = data.toString();
+		String actual = sconData.toString();
+		Assert.assertEquals(ref, actual);
+	}
 }

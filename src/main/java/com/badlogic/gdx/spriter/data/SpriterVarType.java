@@ -36,8 +36,6 @@ public enum SpriterVarType {
 
 		SpriterVarValue result = new SpriterVarValue();
 		result.type = this;
-		result.floatValue = java.lang.Float.MIN_VALUE;
-		result.intValue = Integer.MIN_VALUE;
 		result.stringValue = value;
 		fillVarValue(result, value);
 

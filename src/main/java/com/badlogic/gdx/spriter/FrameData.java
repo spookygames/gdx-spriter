@@ -7,6 +7,7 @@ package com.badlogic.gdx.spriter;
 
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterData;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterKey;
 import com.badlogic.gdx.spriter.data.SpriterMainlineKey;
 import com.badlogic.gdx.spriter.data.SpriterObject;
@@ -138,7 +139,7 @@ public class FrameData {
 	}
 
 	private static SpriterSpatial[] getBoneInfos(SpriterMainlineKey key, SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
-		if (key.boneRefs == null)
+		if (key.boneRefs.size == 0)
 			return null;
 		SpriterSpatial[] ret = new SpriterSpatial[key.boneRefs.size];
 
@@ -214,8 +215,7 @@ public class FrameData {
 		object.scaleY = MathHelper.linear(a.scaleY, b.scaleY, f);
 		object.pivotX = a.pivotX;
 		object.pivotY = a.pivotY;
-		object.fileId = a.fileId;
-		object.folderId = a.folderId;
+		object.file = new SpriterFileInfo(a.file);
 		object.entityId = a.entityId;
 		object.animationId = a.animationId;
 		object.t = MathHelper.linear(a.t, b.t, f);
@@ -249,8 +249,7 @@ public class FrameData {
 
 		copy.animationId = info.animationId;
 		copy.entityId = info.entityId;
-		copy.fileId = info.fileId;
-		copy.folderId = info.folderId;
+		copy.file = new SpriterFileInfo(info.file);
 		copy.pivotX = info.pivotX;
 		copy.pivotY = info.pivotY;
 		copy.t = info.t;

@@ -10,8 +10,8 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public interface SpriterAssetProvider {
 
-	public Sprite getSprite(int folderId, int fileId);
+	public Sprite getSprite(SpriterFileInfo file);
 
-	public Sound getSound(int folderId, int fileId);
+	public Sound getSound(SpriterFileInfo file);
 
 }

@@ -9,7 +9,7 @@ public class SpriterVarDef extends SpriterElement {
 
 	public SpriterVarType type = SpriterVarType.String;
 	public String defaultValue;
-	public SpriterVarValue variableValue = new SpriterVarValue();
+	public SpriterVarValue variableValue;
 
 	@Override
 	public String toString() {

@@ -14,6 +14,7 @@ import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterMapInstruction;
 import com.badlogic.gdx.spriter.data.SpriterObject;
 import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
@@ -93,6 +94,10 @@ public class SpriterAnimator {
 
 	public SpriterCharacterMap getCharacterMap() {
 		return characterMap;
+	}
+
+	public void setCharacterMap(SpriterCharacterMap characterMap) {
+		this.characterMap = characterMap;
 	}
 
 	public String getName() {
@@ -185,7 +190,7 @@ public class SpriterAnimator {
 	}
 
 	public void update(float deltaTime) {
-		deltaTime *= 1000f;	// We're talking milliseconds here
+		deltaTime *= 1000f; // We're talking milliseconds here
 		float elapsed = deltaTime * speed;
 
 		if (nextAnimation != null && totalTransitionTime != 0.0f) {
@@ -236,12 +241,12 @@ public class SpriterAnimator {
 
 	public void draw(Batch batch, ShapeRenderer renderer) {
 		for (SpriterObject info : frameData.spriteData)
-			drawObject(batch, getSprite(info), info);
+			drawObject(batch, assets.getSprite(applyCharacterMap(info.file)), info);
 
 		for (SpriterSound info : metaData.sounds)
-			playSound(assets.getSound(info.folderId, info.fileId), info);
+			playSound(assets.getSound(applyCharacterMap(info.file)), info);
 
-		if(renderer != null) {
+		if (renderer != null) {
 			for (SpriterObject info : frameData.pointData)
 				drawPoint(renderer, info);
 
@@ -289,24 +294,13 @@ public class SpriterAnimator {
 			listener.onEventTriggered(eventName);
 	}
 
-	private Sprite getSprite(SpriterObject info) {
-		int folderId = info.folderId;
-		int fileId = info.fileId;
-
+	private SpriterFileInfo applyCharacterMap(SpriterFileInfo file) {
 		// Check values from character map
-		if (characterMap != null) {
-			for (SpriterMapInstruction map : characterMap.maps) {
-				if (map.folderId != folderId || map.fileId != fileId)
-					continue; // Irrelevant map
+		if (characterMap != null)
+			for (SpriterMapInstruction map : characterMap.maps)
+				if (map.file.equals(file) && map.target.folderId >= 0 && map.target.fileId >= 0)
+					return map.target;
 
-				if (map.targetFolderId < 0 || map.targetFileId < 0)
-					continue; // Wrong map
-
-				folderId = map.targetFolderId;
-				fileId = map.targetFileId;
-			}
-		}
-
-		return assets.getSprite(folderId, fileId);
+		return file;
 	}
 }

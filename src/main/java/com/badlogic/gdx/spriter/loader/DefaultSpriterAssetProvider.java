@@ -10,30 +10,34 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
-import com.badlogic.gdx.spriter.IntPairMap;
 import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.ObjectMap;
 
 public class DefaultSpriterAssetProvider implements SpriterAssetProvider, Disposable {
 
-	private final IntPairMap<Sprite> sprites = new IntPairMap<Sprite>();
-	private final IntPairMap<Sound> sounds = new IntPairMap<Sound>();
+	private final ObjectMap<SpriterFileInfo, Sprite> sprites = new ObjectMap<SpriterFileInfo, Sprite>();
+	private final ObjectMap<SpriterFileInfo, Sound> sounds = new ObjectMap<SpriterFileInfo, Sound>();
 
 	public DefaultSpriterAssetProvider(SpriterData data, String root) {
 		super();
 
 		for (SpriterFolder folder : data.folders) {
 			for (SpriterFile file : folder.files) {
+				SpriterFileInfo info = new SpriterFileInfo();
+				info.folderId = folder.id;
+				info.fileId = file.id;
 				FileHandle handle = Gdx.files.internal(root + file.name);
 				switch (file.type) {
 				case Image:
-					sprites.put(folder.id, file.id, new Sprite(new Texture(handle)));
+					sprites.put(info, new Sprite(new Texture(handle)));
 					break;
 				case Sound:
-					sounds.put(folder.id, file.id, Gdx.audio.newSound(handle));
+					sounds.put(info, Gdx.audio.newSound(handle));
 					break;
 				}
 			}
@@ -42,13 +46,13 @@ public class DefaultSpriterAssetProvider implements SpriterAssetProvider, Dispos
 	}
 
 	@Override
-	public Sprite getSprite(int folderId, int fileId) {
-		return sprites.get(folderId, fileId);
+	public Sprite getSprite(SpriterFileInfo info) {
+		return sprites.get(info);
 	}
 
 	@Override
-	public Sound getSound(int folderId, int fileId) {
-		return sounds.get(folderId, fileId);
+	public Sound getSound(SpriterFileInfo info) {
+		return sounds.get(info);
 	}
 
 	@Override

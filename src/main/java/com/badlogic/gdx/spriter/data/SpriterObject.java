@@ -9,15 +9,14 @@ public class SpriterObject extends SpriterSpatial {
 
 	public int animationId;
 	public int entityId;
-	public int folderId;
-	public int fileId;
+	public SpriterFileInfo file;
 	public float pivotX = Float.NaN;
 	public float pivotY = Float.NaN;
 	public float t;
 
 	@Override
 	public String toString() {
-		return "SpriterObject [animationId=" + animationId + ", entityId=" + entityId + ", folderId=" + folderId + ", fileId=" + fileId + ", pivotX=" + pivotX + ", pivotY=" + pivotY + ", t=" + t + ", x=" + x + ", y=" + y + ", angle=" + angle + ", scaleX=" + scaleX + ", scaleY=" + scaleY + ", alpha=" + alpha + "]";
+		return "SpriterObject [animationId=" + animationId + ", entityId=" + entityId + ", file=" + file + ", pivotX=" + pivotX + ", pivotY=" + pivotY + ", t=" + t + ", x=" + x + ", y=" + y + ", angle=" + angle + ", scaleX=" + scaleX + ", scaleY=" + scaleY + ", alpha=" + alpha + "]";
 	}
 
 }

@@ -16,6 +16,7 @@ import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterFile;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.spriter.data.SpriterObject;
 import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
@@ -47,26 +48,26 @@ public abstract class SpriterReader {
 			entity.data = data;
 			for (SpriterAnimation a : entity.animations) {
 				a.entity = entity;
-				
+
 				// Initialize objects
 				for (SpriterTimeline t : a.timelines)
 					for (SpriterTimelineKey k : t.keys)
 						initializeObject(k.objectInfo, data.folders);
-				
+
 				// Initialize vardefs
-		        if (a.meta != null) {
-		        	
-			        for (SpriterVarline v : a.meta.varlines)
-			        	initializeVarline(v, entity.variables.get(v.def));
-			        
-			        for(SpriterTimeline timeline : a.timelines)
-			        	if(timeline.meta != null)
-			        		for(SpriterVarline v : timeline.meta.varlines)
-			        			for(SpriterObjectInfo o : entity.objectInfos)
-			        				if(timeline.name.equals(o.name))
-			        					initializeVarline(v, o.variables.get(v.def));
-			        
-		        }
+				if (a.meta != null) {
+
+					for (SpriterVarline v : a.meta.varlines)
+						initializeVarline(v, entity.variables.get(v.def));
+
+					for (SpriterTimeline timeline : a.timelines)
+						if (timeline.meta != null)
+							for (SpriterVarline v : timeline.meta.varlines)
+								for (SpriterObjectInfo o : entity.objectInfos)
+									if (timeline.name.equals(o.name))
+										initializeVarline(v, o.variables.get(v.def));
+
+				}
 			}
 		}
 	}
@@ -75,16 +76,17 @@ public abstract class SpriterReader {
 		if (o == null)
 			return;
 		if (Float.isNaN(o.pivotX) || Float.isNaN(o.pivotY)) {
-			SpriterFile file = folders.get(o.folderId).files.get(o.fileId);
+			SpriterFileInfo info = o.file;
+			SpriterFile file = folders.get(info.folderId).files.get(info.fileId);
 			o.pivotX = file.pivotX;
 			o.pivotY = file.pivotY;
 		}
 	}
-	
+
 	private void initializeVarline(SpriterVarline varline, SpriterVarDef varDef) {
-        varDef.variableValue = varDef.type.buildVarValue(varDef.defaultValue);
-        for (SpriterVarlineKey key : varline.keys)
-        	key.variableValue = varDef.type.buildVarValue(key.value);
-    }
+		varDef.variableValue = varDef.type.buildVarValue(varDef.defaultValue);
+		for (SpriterVarlineKey key : varline.keys)
+			key.variableValue = varDef.type.buildVarValue(key.value);
+	}
 
 }

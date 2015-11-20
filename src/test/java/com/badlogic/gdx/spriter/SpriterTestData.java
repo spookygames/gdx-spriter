@@ -10,6 +10,7 @@ import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterElement;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterFile;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.spriter.data.SpriterMainline;
 import com.badlogic.gdx.spriter.data.SpriterMainlineKey;
@@ -20,6 +21,7 @@ import com.badlogic.gdx.spriter.data.SpriterTimeline;
 import com.badlogic.gdx.spriter.data.SpriterTimelineKey;
 import com.badlogic.gdx.spriter.data.SpriterVarDef;
 import com.badlogic.gdx.spriter.data.SpriterVarType;
+import com.badlogic.gdx.spriter.data.SpriterVarValue;
 import com.badlogic.gdx.spriter.data.SpriterVarline;
 import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 
@@ -37,18 +39,13 @@ public class SpriterTestData {
 	static final String boxtagSCML = "/BoxTagVariable/player.scml";
 	static final String boxtagSCON = "/BoxTagVariable/player.scon";
 
-	static final String pointstriggersSCML = "/PointsTriggers/gunner_player_smaller_head.scml";
-	static final String pointstriggersSCON = "/PointsTriggers/gunner_player_smaller_head.scon";
-
 	// Default Spriter example
 	static final String greyguySCML = "/GreyGuy/player.scml";
 	static final String greyguySCON = "/GreyGuy/player.scon";
 
-	static final String[] scml = new String[] { letterbotSCML, boxtagSCML,
-			pointstriggersSCML, greyguySCML };
+	static final String[] scml = new String[] { letterbotSCML, boxtagSCML, greyguySCML };
 
-	static final String[] scon = new String[] { letterbotSCON, boxtagSCON,
-			pointstriggersSCON, greyguySCON };
+	static final String[] scon = new String[] { letterbotSCON, boxtagSCON, greyguySCON };
 
 	private static SpriterData BuildData1() {
 		SpriterData data = new SpriterData();
@@ -65,8 +62,10 @@ public class SpriterTestData {
 		SpriterTimeline timeline = new SpriterTimeline();
 		SpriterTimelineKey timelineKey = new SpriterTimelineKey();
 		SpriterObject info = new SpriterObject();
-		info.folderId = 0;
-		info.fileId = 0;
+		SpriterFileInfo fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 0;
+		info.file = fileInfo;
 		info.pivotX = Float.NaN;
 		info.pivotY = Float.NaN;
 		timelineKey.objectInfo = info;
@@ -125,6 +124,11 @@ public class SpriterTestData {
 		varDef.name = "current letter";
 		varDef.type = SpriterVarType.String;
 		varDef.defaultValue = "A";
+		varDef.variableValue = new SpriterVarValue();
+		varDef.variableValue.type = SpriterVarType.String;
+		varDef.variableValue.stringValue = "A";
+		varDef.variableValue.intValue = Integer.MIN_VALUE;
+		varDef.variableValue.floatValue = Float.MIN_VALUE;
 
 		entity.variables.add(varDef);
 
@@ -300,8 +304,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		SpriterObject object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 0;
+		SpriterFileInfo fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 0;
+		object.file = fileInfo;
 		object.x = -5f;
 		object.y = 8f;
 		object.angle = 0f;
@@ -323,8 +329,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 1;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 1;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -341,8 +349,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 1;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 1;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -359,8 +369,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 2;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 2;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -378,8 +390,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 2;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 2;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -396,8 +410,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 2;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 2;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -414,8 +430,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 1;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 1;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -433,8 +451,10 @@ public class SpriterTestData {
 		timelineKey.spin = 0;
 
 		object = new SpriterObject();
-		object.folderId = 0;
-		object.fileId = 1;
+		fileInfo = new SpriterFileInfo();
+		fileInfo.folderId = 0;
+		fileInfo.fileId = 1;
+		object.file = fileInfo;
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
@@ -457,6 +477,10 @@ public class SpriterTestData {
 		varlineKey.id = 0;
 		varlineKey.time = 2;
 		varlineKey.value = "";
+		varlineKey.variableValue.type = SpriterVarType.String;
+		varlineKey.variableValue.stringValue = "";
+		varlineKey.variableValue.intValue = Integer.MIN_VALUE;
+		varlineKey.variableValue.floatValue = Float.MIN_VALUE;
 
 		varline.keys.add(varlineKey);
 
@@ -464,6 +488,10 @@ public class SpriterTestData {
 		varlineKey.id = 1;
 		varlineKey.time = 871;
 		varlineKey.value = "B";
+		varlineKey.variableValue.type = SpriterVarType.String;
+		varlineKey.variableValue.stringValue = "B";
+		varlineKey.variableValue.intValue = Integer.MIN_VALUE;
+		varlineKey.variableValue.floatValue = Float.MIN_VALUE;
 
 		varline.keys.add(varlineKey);
 
@@ -471,6 +499,10 @@ public class SpriterTestData {
 		varlineKey.id = 2;
 		varlineKey.time = 1901;
 		varlineKey.value = "A";
+		varlineKey.variableValue.type = SpriterVarType.String;
+		varlineKey.variableValue.stringValue = "A";
+		varlineKey.variableValue.intValue = Integer.MIN_VALUE;
+		varlineKey.variableValue.floatValue = Float.MIN_VALUE;
 
 		varline.keys.add(varlineKey);
 
@@ -481,12 +513,6 @@ public class SpriterTestData {
 		entity.animations.add(animation);
 
 		data.entities.add(entity);
-		
-		for (SpriterEntity e : data.entities)
-			for (SpriterAnimation a : e.animations)
-				for (SpriterTimeline t : a.timelines)
-					for (SpriterTimelineKey k : t.keys)
-						k.toString();	// Do nothing but "warm up" iterators
 
 		return data;
 	}
@@ -494,15 +520,16 @@ public class SpriterTestData {
 	private static SpriterData BuildLetterBotSCON() {
 		SpriterData data = BuildLetterBotSCML();
 		data.generatorVersion = "r4.1";
-		
+
+		data.entities.first().variables.first().variableValue = null;
 		data.entities.first().animations.first().meta.varlines.clear();
-		
+
 		SpriterElement element = new SpriterElement();
 		element.id = 0;
 		element.name = "StuckInMove";
-		
+
 		data.tags.add(element);
-		
+
 		return data;
 	}
 

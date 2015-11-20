@@ -35,6 +35,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameMetadata;
 import com.badlogic.gdx.spriter.SpriterAnimator;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterVarValue;
@@ -63,6 +64,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	SelectBox<FileHandle> fileChooser;
 	SelectBox<SpriterAnimator> entityChooser;
 	SelectBox<String> animationChooser;
+	SelectBox<SpriterCharacterMap> charmapChooser;
 	Slider timeSlider;
 	ChangeListener timeSliderListener;
 	Label timeLabel;
@@ -147,6 +149,16 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 		});
 
+		charmapChooser = new SelectBox<SpriterCharacterMap>(skin);
+		charmapChooser.setName("Charmaps");
+		charmapChooser.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				setCharacterMap(charmapChooser.getSelected());
+				lastUsedSelectBox = charmapChooser;
+			}
+		});
+
 		selectionTable.row().pad(3f);
 		selectionTable.add(new Label("File", skin)).right();
 		selectionTable.add(fileChooser).fill();
@@ -156,6 +168,9 @@ public class SpriterDemoApp implements ApplicationListener {
 		selectionTable.row().pad(3f);
 		selectionTable.add(new Label("Animation", skin)).right();
 		selectionTable.add(animationChooser).fill();
+		selectionTable.row().pad(3f);
+		selectionTable.add(new Label("Character map", skin)).right();
+		selectionTable.add(charmapChooser).fill();
 
 		Table controlTable = new Table(skin);
 
@@ -334,6 +349,21 @@ public class SpriterDemoApp implements ApplicationListener {
 		animators.clear();
 
 		for (SpriterEntity entity : data.entities) {
+			// Change toString method for charmaps
+			Array<SpriterCharacterMap> replacements = new Array<SpriterCharacterMap>();
+			for(SpriterCharacterMap map : entity.characterMaps) {
+				SpriterCharacterMap newMap = new SpriterCharacterMap() {
+					@Override
+					public String toString() {
+						return id + ": " + name;
+					}
+				};
+				newMap.id = map.id;
+				newMap.name = map.name;
+				newMap.maps = map.maps;
+				replacements.add(newMap);
+			}
+			entity.characterMaps = replacements;
 			for (SpriterAnimation anim : entity.animations)
 				anim.looping = true;
 			animators.add(new SpriterAnimator(entity) {
@@ -366,6 +396,15 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		animationChooser.setItems(anims);
 		animationChooser.setSelectedIndex(0);
+
+		Array<SpriterCharacterMap> characterMaps = animator.getEntity().characterMaps;
+		if (characterMaps.size > 0) {
+			charmapChooser.setDisabled(false);
+			charmapChooser.setItems((SpriterCharacterMap[]) characterMaps.toArray(SpriterCharacterMap.class));
+			charmapChooser.setSelectedIndex(0);
+		} else {
+			charmapChooser.setDisabled(true);
+		}
 	}
 
 	private void setAnimation(String anim) {
@@ -375,6 +414,10 @@ public class SpriterDemoApp implements ApplicationListener {
 			animator.play(anim);
 		}
 		timeSlider.setRange(0f, animator.getLength());
+	}
+
+	private void setCharacterMap(SpriterCharacterMap characterMap) {
+		animator.setCharacterMap(characterMap);
 	}
 
 	@Override
@@ -389,7 +432,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		spriterCamera.update();
 
 		stage.act(delta);
-		
+
 		if (animator != null) {
 			if (play) {
 				animator.update(delta);
