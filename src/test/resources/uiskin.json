@@ -67,6 +67,7 @@
 		    font: default-font, fontColor: white, background: default-select,
 		    scrollStyle: default,
 		    listStyle: default,
+		    backgroundDisabled: default-round-large
 	    }
     },
 }

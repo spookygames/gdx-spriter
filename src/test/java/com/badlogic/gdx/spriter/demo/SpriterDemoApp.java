@@ -339,7 +339,7 @@ public class SpriterDemoApp implements ApplicationListener {
 				done = true;
 			} catch (GdxRuntimeException ex) {
 				failed = true;
-				new Dialog("Loading error", skin, "dialog").text(ex.getLocalizedMessage()).button("I understand", true).key(Keys.ENTER, true).key(Keys.ESCAPE, true).show(stage);
+				popup("Loading error", ex.getLocalizedMessage());
 			}
 		}
 		if (failed)
@@ -376,7 +376,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			animator.getListeners().add(new SpriterAnimationListener() {
 				@Override
 				public void onEventTriggered(String eventName) {
-					// TODO Display event
+					popup("SpriterEvent", eventName);
 				}
 
 				@Override
@@ -418,6 +418,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			charmapChooser.setItems((SpriterCharacterMap[]) characterMaps.toArray(SpriterCharacterMap.class));
 			charmapChooser.setSelectedIndex(0);
 		} else {
+			charmapChooser.setItems(new SpriterCharacterMap[0]);
 			charmapChooser.setDisabled(true);
 		}
 	}
@@ -534,6 +535,10 @@ public class SpriterDemoApp implements ApplicationListener {
 
 	@Override
 	public void resume() {
+	}
+
+	private void popup(String title, String content) {
+		new Dialog(title, skin, "dialog").text(content).button("I understand", true).key(Keys.ENTER, true).key(Keys.ESCAPE, true).show(stage);
 	}
 
 	@Override
