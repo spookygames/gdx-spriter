@@ -174,7 +174,7 @@ public class FrameData {
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
 		if (keyB == null)
-			return copy(keyA.boneInfo);
+			return new SpriterSpatial(keyA.boneInfo);
 
 		float factor = getFactor(keyA, keyB, animation.length, targetTime);
 		return interpolate(keyA.boneInfo, keyB.boneInfo, factor, keyA.spin);
@@ -186,7 +186,7 @@ public class FrameData {
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
 		if (keyB == null)
-			return copy(keyA.objectInfo);
+			return new SpriterObject(keyA.objectInfo);
 
 		float factor = getFactor(keyA, keyB, animation.length, targetTime);
 		return interpolate(keyA.objectInfo, keyB.objectInfo, factor, keyA.spin);
@@ -236,35 +236,6 @@ public class FrameData {
 		child.scaleY *= parent.scaleY;
 		child.angle = parent.angle + Math.signum(parent.scaleX * parent.scaleY) * child.angle;
 		child.angle %= 360.0f;
-	}
-
-	private static SpriterSpatial copy(SpriterSpatial info) {
-		SpriterSpatial copy = new SpriterSpatial();
-		fillFrom(copy, info);
-		return copy;
-	}
-
-	private static SpriterObject copy(SpriterObject info) {
-		SpriterObject copy = new SpriterObject();
-
-		copy.animationId = info.animationId;
-		copy.entityId = info.entityId;
-		copy.file = new SpriterFileInfo(info.file);
-		copy.pivotX = info.pivotX;
-		copy.pivotY = info.pivotY;
-		copy.t = info.t;
-
-		fillFrom(copy, info);
-		return copy;
-	}
-
-	private static void fillFrom(SpriterSpatial target, SpriterSpatial source) {
-		target.alpha = source.alpha;
-		target.angle = source.angle;
-		target.scaleX = source.scaleX;
-		target.scaleY = source.scaleY;
-		target.x = source.x;
-		target.y = source.y;
 	}
 
 	public static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {

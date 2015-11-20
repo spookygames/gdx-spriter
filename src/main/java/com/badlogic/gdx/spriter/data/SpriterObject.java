@@ -14,6 +14,19 @@ public class SpriterObject extends SpriterSpatial {
 	public float pivotY = Float.NaN;
 	public float t;
 
+	public SpriterObject() {
+	}
+
+	public SpriterObject(SpriterObject other) {
+		super(other);
+		this.animationId = other.animationId;
+		this.entityId = other.entityId;
+		this.file = other.file == null ? null : new SpriterFileInfo(other.file);
+		this.pivotX = other.pivotX;
+		this.pivotY = other.pivotY;
+		this.t = other.t;
+	}
+
 	@Override
 	public String toString() {
 		return "SpriterObject [animationId=" + animationId + ", entityId=" + entityId + ", file=" + file + ", pivotX=" + pivotX + ", pivotY=" + pivotY + ", t=" + t + ", x=" + x + ", y=" + y + ", angle=" + angle + ", scaleX=" + scaleX + ", scaleY=" + scaleY + ", alpha=" + alpha + "]";

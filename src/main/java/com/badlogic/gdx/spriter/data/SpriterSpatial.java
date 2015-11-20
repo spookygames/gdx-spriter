@@ -14,6 +14,18 @@ public class SpriterSpatial {
 	public float scaleY = 1;
 	public float alpha = 1;
 
+	public SpriterSpatial() {
+	}
+
+	public SpriterSpatial(SpriterSpatial other) {
+		this.x = other.x;
+		this.y = other.y;
+		this.angle = other.angle;
+		this.scaleX = other.scaleX;
+		this.scaleY = other.scaleY;
+		this.alpha = other.alpha;
+	}
+
 	@Override
 	public String toString() {
 		return "SpriterSpatial [x=" + x + ", y=" + y + ", angle=" + angle + ", scaleX=" + scaleX + ", scaleY=" + scaleY + ", alpha=" + alpha + "]";
