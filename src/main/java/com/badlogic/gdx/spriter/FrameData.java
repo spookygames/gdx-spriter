@@ -71,6 +71,8 @@ public class FrameData {
 
 			SpriterObject info = interpolate(interpolatedFirst, interpolatedSecond, factor, 1);
 			info.angle = MathHelper.closerAngleLinear(interpolatedFirst.angle, interpolatedSecond.angle, factor);
+			info.pivotX = MathHelper.linear(interpolatedFirst.pivotX, interpolatedSecond.pivotX, factor);
+			info.pivotY = MathHelper.linear(interpolatedFirst.pivotY, interpolatedSecond.pivotY, factor);
 
 			if (boneInfos != null && objectRefFirst.parentId >= 0)
 				applyParentTransform(info, boneInfos[objectRefFirst.parentId]);
@@ -159,6 +161,7 @@ public class FrameData {
 
 	private static SpriterMainlineKey[] getMainlineKeys(Array<SpriterMainlineKey> keys, float targetTime) {
 		SpriterMainlineKey keyA = lastKeyForTime(keys, targetTime);
+		
 		int nextKey = keyA.id + 1;
 		if (nextKey >= keys.size)
 			nextKey = 0;
@@ -260,7 +263,7 @@ public class FrameData {
 	}
 
 	public static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
-		T current = null;
+		T current = keys.peek();
 		for (T key : keys) {
 			if (key.time > targetTime)
 				break;
