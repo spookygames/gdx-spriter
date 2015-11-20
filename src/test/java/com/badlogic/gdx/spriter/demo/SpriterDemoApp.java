@@ -33,6 +33,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameMetadata;
+import com.badlogic.gdx.spriter.SpriterAnimationListener;
 import com.badlogic.gdx.spriter.SpriterAnimator;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
@@ -351,7 +352,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		for (SpriterEntity entity : data.entities) {
 			// Change toString method for charmaps
 			Array<SpriterCharacterMap> replacements = new Array<SpriterCharacterMap>();
-			for(SpriterCharacterMap map : entity.characterMaps) {
+			for (SpriterCharacterMap map : entity.characterMaps) {
 				SpriterCharacterMap newMap = new SpriterCharacterMap() {
 					@Override
 					public String toString() {
@@ -364,15 +365,29 @@ public class SpriterDemoApp implements ApplicationListener {
 				replacements.add(newMap);
 			}
 			entity.characterMaps = replacements;
-			for (SpriterAnimation anim : entity.animations)
-				anim.looping = true;
-			animators.add(new SpriterAnimator(entity) {
+
+			SpriterAnimator animator = new SpriterAnimator(entity) {
 				@Override
 				public String toString() {
 					SpriterEntity entity = getEntity();
 					return entity.id + ": " + entity.name;
 				}
+			};
+			animator.getListeners().add(new SpriterAnimationListener() {
+				@Override
+				public void onEventTriggered(String eventName) {
+					// TODO Display event
+				}
+
+				@Override
+				public void onAnimationFinished(String animationName) {
+					SpriterAnimation animation = animator.getCurrentAnimation();
+					if (!animation.looping)
+						animator.play(animation);
+				}
 			});
+
+			animators.add(animator);
 		}
 
 		fileChooser.setSelected(file);
