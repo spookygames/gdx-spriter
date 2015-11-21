@@ -366,7 +366,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 			entity.characterMaps = replacements;
 
-			SpriterAnimator animator = new SpriterAnimator(entity) {
+			final SpriterAnimator animator = new SpriterAnimator(entity) {
 				@Override
 				public String toString() {
 					SpriterEntity entity = getEntity();

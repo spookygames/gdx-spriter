@@ -8,6 +8,7 @@ To do so, it relies on SpriterDotNet efficiency, skips any form of cross-framewo
 
 gdx-spriter should support every feature supported by SpriterDotNet.
 SCML as well as SCON formats are supported.
+Also, character maps affect sprites *and* sounds, yay!
 
 ## Ok, still here and interested, what do I do now?
 In order to bring your shiny Spriter animations into your beloved GDX game, please proceed as follows:
