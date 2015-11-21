@@ -25,11 +25,10 @@ import com.badlogic.gdx.utils.ObjectMap;
 
 public class SpriterAnimator {
 
-
-	private final SpriterData spriterData;
-	private final SpriterEntity entity;
+	protected final SpriterData spriterData;
+	protected final SpriterEntity entity;
 	private final SpriterAssetProvider assets;
-	private final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
+	protected final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
 
 	private SpriterAnimation currentAnimation;
 	private SpriterAnimation nextAnimation;
