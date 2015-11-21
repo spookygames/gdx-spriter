@@ -5,10 +5,12 @@
 
 package com.badlogic.gdx.spriter;
 
+import com.badlogic.gdx.spriter.data.SpriterAnimation;
+
 public interface SpriterAnimationListener {
 
-	public void onAnimationFinished(String animationName);
+	public void onAnimationFinished(SpriterAnimator animator, SpriterAnimation animation);
 
-	public void onEventTriggered(String eventName);
+	public void onEventTriggered(SpriterAnimator animator, String event);
 
 }

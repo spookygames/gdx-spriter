@@ -72,8 +72,12 @@ public class SpriterAnimator {
 		this.time = progress * length;
 	}
 
-	public Array<SpriterAnimationListener> getListeners() {
-		return listeners;
+	public void addAnimationListener(SpriterAnimationListener listener) {
+		listeners.add(listener);
+	}
+
+	public boolean removeAnimationListener(SpriterAnimationListener listener) {
+		return listeners.removeValue(listener, true);
 	}
 
 	public SpriterData getSpriterData() {
@@ -215,15 +219,17 @@ public class SpriterAnimator {
 				time = 0.0f;
 
 			for (SpriterAnimationListener listener : listeners)
-				listener.onAnimationFinished(name);
+				listener.onAnimationFinished(this, currentAnimation);
+			
 		} else if (time >= length) {
+			
 			if (currentAnimation.looping)
 				time -= length;
 			else
 				time = length;
 
 			for (SpriterAnimationListener listener : listeners)
-				listener.onAnimationFinished(name);
+				listener.onAnimationFinished(this, currentAnimation);
 		}
 
 		if (nextAnimation == null) {
@@ -291,7 +297,7 @@ public class SpriterAnimator {
 
 	protected void dispatchEvent(String eventName) {
 		for (SpriterAnimationListener listener : listeners)
-			listener.onEventTriggered(eventName);
+			listener.onEventTriggered(this, eventName);
 	}
 
 	private SpriterFileInfo applyCharacterMap(SpriterFileInfo file) {

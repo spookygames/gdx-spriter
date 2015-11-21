@@ -323,7 +323,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		for (FileHandle f : spriterFiles)
 			if (!files.contains(f, false))
 				files.add(new PrettyDisplayFileHandle(f));
-		
+
 		fileChooser.setItems(files);
 
 		if (files.size > 0)
@@ -372,22 +372,21 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 			entity.characterMaps = replacements;
 
-			final SpriterAnimator animator = new SpriterAnimator(entity) {
+			SpriterAnimator animator = new SpriterAnimator(entity) {
 				@Override
 				public String toString() {
 					SpriterEntity entity = getEntity();
 					return entity.id + ": " + entity.name;
 				}
 			};
-			animator.getListeners().add(new SpriterAnimationListener() {
+			animator.addAnimationListener(new SpriterAnimationListener() {
 				@Override
-				public void onEventTriggered(String eventName) {
+				public void onEventTriggered(SpriterAnimator animator, String eventName) {
 					popup("SpriterEvent", eventName);
 				}
 
 				@Override
-				public void onAnimationFinished(String animationName) {
-					SpriterAnimation animation = animator.getCurrentAnimation();
+				public void onAnimationFinished(SpriterAnimator animator, SpriterAnimation animation) {
 					if (!animation.looping)
 						animator.play(animation);
 				}
