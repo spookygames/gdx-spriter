@@ -35,11 +35,13 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameMetadata;
 import com.badlogic.gdx.spriter.SpriterAnimationListener;
 import com.badlogic.gdx.spriter.SpriterAnimator;
+import com.badlogic.gdx.spriter.SpriterTestData;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterVarValue;
+import com.badlogic.gdx.spriter.demo.SpriterDemoUtils.PrettyDisplayFileHandle;
 import com.badlogic.gdx.spriter.loader.SpriterDataLoader;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -309,15 +311,19 @@ public class SpriterDemoApp implements ApplicationListener {
 		};
 		Gdx.input.setInputProcessor(new InputMultiplexer(stage, globalInput));
 
+		// Add default test resources
+		Array<String> testResources = new Array<String>(SpriterTestData.scml);
+		testResources.addAll(SpriterTestData.scon);
+		testResources.sort();
+		for(String path : testResources)
+			files.add(new PrettyDisplayFileHandle(Gdx.files.internal(path.replaceFirst("/", ""))));
+
+		// Also go discover some unknown exotic resources! (won't work in jar though)
 		Array<FileHandle> spriterFiles = SpriterDemoUtils.findFiles(new String[] { "scml", "scon" });
-		for (FileHandle f : spriterFiles) {
-			files.add(new FileHandle(f.file()) {
-				@Override
-				public String toString() {
-					return name();
-				}
-			});
-		}
+		for (FileHandle f : spriterFiles)
+			if (!files.contains(f, false))
+				files.add(new PrettyDisplayFileHandle(f));
+		
 		fileChooser.setItems(files);
 
 		if (files.size > 0)

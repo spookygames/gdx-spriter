@@ -43,9 +43,9 @@ public class SpriterTestData {
 	static final String greyguySCML = "/GreyGuy/player.scml";
 	static final String greyguySCON = "/GreyGuy/player.scon";
 
-	static final String[] scml = new String[] { letterbotSCML, boxtagSCML, greyguySCML };
+	public static final String[] scml = new String[] { letterbotSCML, boxtagSCML, greyguySCML };
 
-	static final String[] scon = new String[] { letterbotSCON, boxtagSCON, greyguySCON };
+	public static final String[] scon = new String[] { letterbotSCON, boxtagSCON, greyguySCON };
 
 	private static SpriterData BuildData1() {
 		SpriterData data = new SpriterData();

@@ -5,10 +5,7 @@
 
 package com.badlogic.gdx.spriter.demo;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Group;
@@ -30,20 +27,12 @@ public class SpriterDemoUtils {
 
 	static Array<FileHandle> findFiles(String[] acceptedExtensions) {
 		Array<FileHandle> files = new Array<FileHandle>();
-		try {
-			URL resource = SpriterDemoUtils.class.getResource("/");
-			if (resource != null) {
-				FileHandle root = new FileHandle(new File(resource.toURI()));
-				findFiles(files, root, acceptedExtensions);
-			}
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
+		FileHandle root = Gdx.files.internal(".");
+		findFiles(files, root, acceptedExtensions);
 		return files;
 	}
 
-	static void findFiles(Array<FileHandle> files, FileHandle fileHandle,
-			String[] acceptedExtensions) {
+	static void findFiles(Array<FileHandle> files, FileHandle fileHandle, String[] acceptedExtensions) {
 		if (fileHandle.isDirectory()) {
 			for (FileHandle child : fileHandle.list())
 				findFiles(files, child, acceptedExtensions);
@@ -58,17 +47,6 @@ public class SpriterDemoUtils {
 		}
 	}
 
-	static String removeStart(String str, String remove) {
-		if (str == null || str.length() == 0 || remove == null
-				|| remove.length() == 0) {
-			return str;
-		}
-		if (str.startsWith(remove)) {
-			return str.substring(remove.length());
-		}
-		return str;
-	}
-
 	static String getFileExtension(String name) {
 		String extension = "";
 		int i = name.lastIndexOf('.');
@@ -76,5 +54,25 @@ public class SpriterDemoUtils {
 			extension = name.substring(i + 1);
 		}
 		return extension;
+	}
+
+	static class PrettyDisplayFileHandle extends FileHandle {
+
+		private String displayString;
+
+		public PrettyDisplayFileHandle(FileHandle handle) {
+			super(handle.file());
+
+			String[] parts = path().split("/");
+			int count = parts.length;
+			this.displayString = count > 1 ?
+					parts[count - 2] + "/" + parts[count - 1]
+							: parts[count - 1];
+		}
+
+		@Override
+		public String toString() {
+			return displayString;
+		}
 	}
 }
