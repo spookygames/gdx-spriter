@@ -9,8 +9,8 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
@@ -25,30 +25,29 @@ import com.badlogic.gdx.utils.ObjectMap;
 
 public class SpriterAnimator {
 
-	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
-	private SpriterData spriterData;
-	private SpriterEntity entity;
+	private final SpriterData spriterData;
+	private final SpriterEntity entity;
+	private final SpriterAssetProvider assets;
+	private final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
+
 	private SpriterAnimation currentAnimation;
 	private SpriterAnimation nextAnimation;
-	private SpriterCharacterMap characterMap;
-	private FrameData frameData;
-	private FrameMetadata metaData;
+	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>();
+	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
-	private String name;
-	private float speed;
-	private float length;
-	private float time;
 	private float x;
 	private float y;
 
-	private final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
+	private float speed;
+	private float time;
 
 	private float totalTransitionTime;
 	private float transitionTime;
 	private float factor;
 
-	private SpriterAssetProvider assets;
+	private FrameData frameData;
+	private FrameMetadata metaData;
 
 	public SpriterAnimator(SpriterEntity spriterEntity) {
 		entity = spriterEntity;
@@ -59,25 +58,8 @@ public class SpriterAnimator {
 			animations.put(animation.name, animation);
 
 		speed = 1.0f;
-		play(animations.keys().next());
 
 		metaData = new FrameMetadata();
-	}
-
-	public float getProgress() {
-		return time / length;
-	}
-
-	public void setProgress(float progress) {
-		this.time = progress * length;
-	}
-
-	public void addAnimationListener(SpriterAnimationListener listener) {
-		listeners.add(listener);
-	}
-
-	public boolean removeAnimationListener(SpriterAnimationListener listener) {
-		return listeners.removeValue(listener, true);
 	}
 
 	public SpriterData getSpriterData() {
@@ -88,6 +70,14 @@ public class SpriterAnimator {
 		return entity;
 	}
 
+	public Iterable<String> getAnimationNames() {
+		return animations.keys();
+	}
+
+	public Iterable<SpriterAnimation> getAnimations() {
+		return animations.values();
+	}
+
 	public SpriterAnimation getCurrentAnimation() {
 		return currentAnimation;
 	}
@@ -96,24 +86,59 @@ public class SpriterAnimator {
 		return nextAnimation;
 	}
 
-	public SpriterCharacterMap getCharacterMap() {
-		return characterMap;
+	public void addCharacterMap(String characterMapName) {
+		for(SpriterCharacterMap map : entity.characterMaps) {
+			if(characterMapName.equals(map.name)) {
+				addCharacterMap(map);
+				break;
+			}
+		}
 	}
 
-	public void setCharacterMap(SpriterCharacterMap characterMap) {
-		this.characterMap = characterMap;
+	public void addCharacterMap(SpriterCharacterMap characterMap) {
+		if(characterMap == null || this.characterMaps.contains(characterMap, true))
+			return;
+		this.characterMaps.add(characterMap);
+	}
+
+	public boolean removeCharacterMap(SpriterCharacterMap characterMap) {
+		return this.characterMaps.removeValue(characterMap, true);
+	}
+
+	public void clearCharacterMaps() {
+		this.characterMaps.clear();
+	}
+
+	public void addAnimationListener(SpriterAnimationListener listener) {
+		listeners.add(listener);
+	}
+
+	public boolean removeAnimationListener(SpriterAnimationListener listener) {
+		return listeners.removeValue(listener, true);
 	}
 
 	public String getName() {
-		return name;
+		return currentAnimation.name;
 	}
 
 	public float getSpeed() {
 		return speed;
 	}
 
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
 	public float getLength() {
-		return length;
+		return currentAnimation.length;
+	}
+
+	public float getProgress() {
+		return time / currentAnimation.length;
+	}
+
+	public void setProgress(float progress) {
+		this.time = progress * currentAnimation.length;
 	}
 
 	public float getTime() {
@@ -145,24 +170,8 @@ public class SpriterAnimator {
 		this.y = y;
 	}
 
-	public FrameMetadata getMetadata() {
+	public FrameMetadata getCurrentMetadata() {
 		return metaData;
-	}
-
-	public float getTotalTransitionTime() {
-		return totalTransitionTime;
-	}
-
-	public float getTransitionTime() {
-		return transitionTime;
-	}
-
-	public float getFactor() {
-		return factor;
-	}
-
-	public Iterable<String> getAnimations() {
-		return animations.keys();
 	}
 
 	public void play(String name) {
@@ -174,21 +183,27 @@ public class SpriterAnimator {
 		time = 0;
 
 		currentAnimation = animation;
-		name = animation.name;
 
 		nextAnimation = null;
-		length = currentAnimation.length;
 	}
 
 	public void transition(String name, float totalTransitionTime) {
+		transition(animations.get(name), totalTransitionTime);
+	}
+
+	public void transition(SpriterAnimation animation, float totalTransitionTime) {
 		this.totalTransitionTime = totalTransitionTime;
 		transitionTime = 0;
-		nextAnimation = animations.get(name);
+		nextAnimation = animation;
 	}
 
 	public void blend(String first, String second, float factor) {
+		blend(animations.get(first), animations.get(second), factor);
+	}
+
+	public void blend(SpriterAnimation first, SpriterAnimation second, float factor) {
 		play(first);
-		nextAnimation = animations.get(second);
+		nextAnimation = second;
 		totalTransitionTime = 0;
 		this.factor = factor;
 	}
@@ -204,7 +219,7 @@ public class SpriterAnimator {
 			factor = transitionTime / totalTransitionTime;
 			if (transitionTime >= totalTransitionTime) {
 				float tmpTime = time;
-				play(nextAnimation.name);
+				play(nextAnimation);
 				time = tmpTime;
 				nextAnimation = null;
 			}
@@ -214,19 +229,19 @@ public class SpriterAnimator {
 
 		if (time < 0.0f) {
 			if (currentAnimation.looping)
-				time += length;
+				time += currentAnimation.length;
 			else
 				time = 0.0f;
 
 			for (SpriterAnimationListener listener : listeners)
 				listener.onAnimationFinished(this, currentAnimation);
-			
-		} else if (time >= length) {
-			
+
+		} else if (time >= currentAnimation.length) {
+
 			if (currentAnimation.looping)
-				time -= length;
+				time -= currentAnimation.length;
 			else
-				time = length;
+				time = currentAnimation.length;
 
 			for (SpriterAnimationListener listener : listeners)
 				listener.onAnimationFinished(this, currentAnimation);
@@ -302,10 +317,15 @@ public class SpriterAnimator {
 
 	private SpriterFileInfo applyCharacterMap(SpriterFileInfo file) {
 		// Check values from character map
-		if (characterMap != null)
-			for (SpriterMapInstruction map : characterMap.maps)
-				if (map.file.equals(file) && map.target.folderId >= 0 && map.target.fileId >= 0)
-					return map.target;
+		if (characterMaps.size > 0) {
+			for(int i = characterMaps.size - 1 ; i >= 0 ; i--) {
+				SpriterCharacterMap characterMap = characterMaps.get(i);
+				for (SpriterMapInstruction map : characterMap.maps) {
+					if (map.file.equals(file) && map.target.folderId >= 0 && map.target.fileId >= 0)
+						return map.target;
+				}
+			}
+		}
 
 		return file;
 	}

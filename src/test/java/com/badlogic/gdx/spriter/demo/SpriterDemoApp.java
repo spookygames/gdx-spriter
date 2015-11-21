@@ -330,6 +330,9 @@ public class SpriterDemoApp implements ApplicationListener {
 			loadSpriterFile(files.first());
 
 		lastUsedSelectBox = fileChooser;
+		
+		if(play)
+			animator.play(animator.getAnimations().iterator().next());
 	}
 
 	private void loadSpriterFile(FileHandle file) {
@@ -411,7 +414,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		entityChooser.setSelected(animator);
 
 		Array<String> anims = new Array<String>();
-		for (String animation : animator.getAnimations())
+		for (String animation : animator.getAnimationNames())
 			anims.add(animation);
 
 		animationChooser.setItems(anims);
@@ -438,7 +441,8 @@ public class SpriterDemoApp implements ApplicationListener {
 	}
 
 	private void setCharacterMap(SpriterCharacterMap characterMap) {
-		animator.setCharacterMap(characterMap);
+		animator.clearCharacterMaps();
+		animator.addCharacterMap(characterMap);
 	}
 
 	@Override
@@ -462,7 +466,7 @@ public class SpriterDemoApp implements ApplicationListener {
 				timeSlider.addListener(timeSliderListener);
 			}
 			String metaText = "";
-			FrameMetadata md = animator.getMetadata();
+			FrameMetadata md = animator.getCurrentMetadata();
 			if (md.animationVars.size > 0) {
 				metaText += "Animation vars:";
 				for (Entry<String, SpriterVarValue> entry : md.animationVars)
