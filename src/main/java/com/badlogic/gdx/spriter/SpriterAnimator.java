@@ -30,23 +30,29 @@ public class SpriterAnimator {
 	private final SpriterAssetProvider assets;
 	protected final ObjectMap<String, SpriterAnimation> animations = new ObjectMap<String, SpriterAnimation>();
 
-	private SpriterAnimation currentAnimation;
-	private SpriterAnimation nextAnimation;
+	private SpriterAnimation currentAnimation = null;
+	private SpriterAnimation nextAnimation = null;
 	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>();
 	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
-	private float x;
-	private float y;
+	private float x = 0f;
+	private float y = 0f;
+	private float pivotX = 0f;
+	private float pivotY = 0f;
+	private float scaleX = 1.0f;
+	private float scaleY = 1.0f;
+	private float angle = 0f;
+	private float alpha = 1.0f;
 
-	private float speed;
-	private float time;
+	private float speed = 1.0f;
+	private float time = 0f;
 
-	private float totalTransitionTime;
-	private float transitionTime;
-	private float factor;
+	private float totalTransitionTime = 0f;
+	private float transitionTime = 0f;
+	private float factor = 0f;
 
-	private FrameData frameData;
-	private FrameMetadata metaData;
+	private FrameData frameData = new FrameData();
+	private FrameMetadata metaData = new FrameMetadata();
 
 	public SpriterAnimator(SpriterEntity spriterEntity) {
 		entity = spriterEntity;
@@ -55,10 +61,6 @@ public class SpriterAnimator {
 
 		for (SpriterAnimation animation : spriterEntity.animations)
 			animations.put(animation.name, animation);
-
-		speed = 1.0f;
-
-		metaData = new FrameMetadata();
 	}
 
 	public SpriterData getSpriterData() {
@@ -98,6 +100,10 @@ public class SpriterAnimator {
 		if(characterMap == null || this.characterMaps.contains(characterMap, true))
 			return;
 		this.characterMaps.add(characterMap);
+	}
+	
+	public Array<SpriterCharacterMap> getCharacterMaps() {
+		return this.characterMaps;
 	}
 
 	public boolean removeCharacterMap(SpriterCharacterMap characterMap) {
@@ -167,6 +173,63 @@ public class SpriterAnimator {
 	public void setPosition(float x, float y) {
 		this.x = x;
 		this.y = y;
+	}
+
+	public float getPivotX() {
+		return pivotX;
+	}
+
+	public void setPivotX(float pivotX) {
+		this.pivotX = pivotX;
+	}
+
+	public float getPivotY() {
+		return pivotY;
+	}
+
+	public void setPivotY(float pivotY) {
+		this.pivotY = pivotY;
+	}
+
+	public void setPivot(float pivotX, float pivotY) {
+		this.pivotX = pivotX;
+		this.pivotY = pivotY;
+	}
+
+	public float getScaleX() {
+		return scaleX;
+	}
+
+	public void setScaleX(float scaleX) {
+		this.scaleX = scaleX;
+	}
+
+	public float getScaleY() {
+		return scaleY;
+	}
+
+	public void setScaleY(float scaleY) {
+		this.scaleY = scaleY;
+	}
+
+	public float getAngle() {
+		return angle;
+	}
+
+	public void setAngle(float angle) {
+		this.angle = angle;
+	}
+
+	public float getAlpha() {
+		return alpha;
+	}
+
+	public void setAlpha(float alpha) {
+		this.alpha = alpha;
+	}
+
+	public FrameData getCurrentData() {
+		return frameData;
 	}
 
 	public FrameMetadata getCurrentMetadata() {
@@ -279,21 +342,27 @@ public class SpriterAnimator {
 	}
 
 	protected void drawObject(Batch batch, Sprite sprite, SpriterObject object) {
-		float newPivotX = (sprite.getWidth() * object.pivotX);
-		float newX = this.x + object.x - newPivotX;
-		float newPivotY = (sprite.getHeight() * object.pivotY);
-		float newY = this.y + object.y - newPivotY;
+		
+		float pivotX = this.pivotX + (sprite.getWidth() * object.pivotX);
+		float x = this.x + object.x - pivotX;
+		
+		float pivotY = this.pivotY + (sprite.getHeight() * object.pivotY);
+		float y = this.y + object.y - pivotY;
 
-		float angle = object.angle;
+		float angle = this.angle + object.angle;
+		
+		float scaleX = this.scaleX * object.scaleX;
+		float scaleY = this.scaleY * object.scaleY;
+		
+		float alpha = this.alpha * object.alpha;
 
-		sprite.setX(newX);
-		sprite.setY(newY);
-
-		sprite.setOrigin(newPivotX, newPivotY);
+		sprite.setX(x);
+		sprite.setY(y);
+		sprite.setOrigin(pivotX, pivotY);
 		sprite.setRotation(angle);
-
-		sprite.setColor(1f, 1f, 1f, object.alpha);
-		sprite.setScale(object.scaleX, object.scaleY);
+		sprite.setAlpha(alpha);
+		sprite.setScale(scaleX, scaleY);
+		
 		sprite.draw(batch);
 	}
 
