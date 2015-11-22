@@ -212,6 +212,11 @@ public class SpriterAnimator {
 		this.scaleY = scaleY;
 	}
 
+	public void setScale(float scaleX, float scaleY) {
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
+	}
+
 	public float getAngle() {
 		return angle;
 	}
