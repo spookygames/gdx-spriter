@@ -55,24 +55,4 @@ public class SpriterDemoUtils {
 		}
 		return extension;
 	}
-
-	static class PrettyDisplayFileHandle extends FileHandle {
-
-		private String displayString;
-
-		public PrettyDisplayFileHandle(FileHandle handle) {
-			super(handle.file());
-
-			String[] parts = path().split("/");
-			int count = parts.length;
-			this.displayString = count > 1 ?
-					parts[count - 2] + "/" + parts[count - 1]
-							: parts[count - 1];
-		}
-
-		@Override
-		public String toString() {
-			return displayString;
-		}
-	}
 }

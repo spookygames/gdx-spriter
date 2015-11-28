@@ -18,10 +18,9 @@ import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -30,6 +29,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameMetadata;
@@ -41,7 +41,6 @@ import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
 import com.badlogic.gdx.spriter.data.SpriterVarValue;
-import com.badlogic.gdx.spriter.demo.SpriterDemoUtils.PrettyDisplayFileHandle;
 import com.badlogic.gdx.spriter.loader.SpriterDataLoader;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -52,27 +51,37 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 public class SpriterDemoApp implements ApplicationListener {
 
 	// Display stuff
-	ShapeRenderer renderer;
 	SpriteBatch batch;
 	OrthographicCamera camera;
-	OrthographicCamera spriterCamera;
 	Skin skin;
 
 	// Widgets
 	Stage stage;
-	Table rootTable;
-	Label metaLabel;
-	Label fpsLabel;
-	Label spriterPlaceholder;
+
 	SelectBox<FileHandle> fileChooser;
 	SelectBox<SpriterAnimator> entityChooser;
 	SelectBox<String> animationChooser;
 	SelectBox<SpriterCharacterMap> charmapChooser;
+
+	SpriterDemoAnimatorSlider positionXSlider;
+	SpriterDemoAnimatorSlider positionYSlider;
+	SpriterDemoAnimatorSlider angleSlider;
+	SpriterDemoAnimatorSlider pivotXSlider;
+	SpriterDemoAnimatorSlider pivotYSlider;
+	SpriterDemoAnimatorSlider scaleXSlider;
+	SpriterDemoAnimatorSlider scaleYSlider;
+	SpriterDemoAnimatorSlider alphaSlider;
+	SpriterDemoAnimatorSlider speedSlider;
+	SpriterDemoAnimatorSlider[] allAnimatorSliders;
+
+	Label metaLabel;
+	Label spriterPlaceholder;
+	SpriterAnimatorActor spriterAnimator;
+
+	CheckBox playPauseButton;
 	Slider timeSlider;
 	ChangeListener timeSliderListener;
 	Label timeLabel;
-	CheckBox playCheckbox;
-	CheckBox transitionCheckbox;
 
 	// Data
 	AssetManager assetManager;
@@ -82,18 +91,14 @@ public class SpriterDemoApp implements ApplicationListener {
 	// Current data
 	FileHandle file = null;
 	SpriterAnimator animator = null;
-	boolean play = true;
 	boolean transition = false;
 	SelectBox<?> lastUsedSelectBox = null;
-	int offsetX, offsetY;
 
 	@Override
 	public void create() {
 		// Initialize object
-		renderer = new ShapeRenderer();
 		batch = new SpriteBatch();
 		camera = new OrthographicCamera();
-		spriterCamera = new OrthographicCamera();
 
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager = new AssetManager(resolver);
@@ -102,42 +107,40 @@ public class SpriterDemoApp implements ApplicationListener {
 		assetManager.load("uiskin.json", Skin.class);
 		assetManager.finishLoading();
 
-		// Setup screen
-		stage = new Stage(new ScreenViewport(camera), batch);
-
 		skin = assetManager.get("uiskin.json");
 
-		rootTable = new Table(skin);
+		// Create widgets
+		stage = new Stage(new ScreenViewport(camera), batch);
 
-		metaLabel = new Label("Meta: ", skin);
-		metaLabel.setWrap(true);
-		metaLabel.setAlignment(Align.topLeft);
+		Label titleLabel = new Label("gdx-spriter", skin);
+		titleLabel.setFontScale(3f);
 
-		fpsLabel = new Label("FPS: ", skin);
-
-		spriterPlaceholder = new Label("No animator", skin);
-		spriterPlaceholder.setAlignment(Align.center);
-
-		Table menuTable = new Table(skin);
-
-		Table selectionTable = new Table(skin);
+		Label fpsLabel = new Label("FPS", skin) {
+			@Override public void act(float delta) {
+				this.setText(Gdx.graphics.getFramesPerSecond() + " FPS");
+				super.act(delta);
+			}
+		};
 
 		fileChooser = new SelectBox<FileHandle>(skin);
 		fileChooser.setName("Files");
 		fileChooser.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				loadSpriterFile(fileChooser.getSelected());
+				changeSpriterFile(fileChooser.getSelected());
 				lastUsedSelectBox = fileChooser;
 			}
 		});
+
+		Button fileFinder = new TextButton("Browse", skin);
+		// TODO Add event handler
 
 		entityChooser = new SelectBox<SpriterAnimator>(skin);
 		entityChooser.setName("Entities");
 		entityChooser.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				setAnimator(entityChooser.getSelected());
+				changeAnimator(entityChooser.getSelected());
 				lastUsedSelectBox = entityChooser;
 			}
 		});
@@ -147,62 +150,12 @@ public class SpriterDemoApp implements ApplicationListener {
 		animationChooser.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				setAnimation(animationChooser.getSelected());
+				changeAnimation(animationChooser.getSelected());
 				lastUsedSelectBox = animationChooser;
 			}
 		});
 
-		charmapChooser = new SelectBox<SpriterCharacterMap>(skin);
-		charmapChooser.setName("Charmaps");
-		charmapChooser.addListener(new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				setCharacterMap(charmapChooser.getSelected());
-				lastUsedSelectBox = charmapChooser;
-			}
-		});
-
-		selectionTable.row().pad(3f);
-		selectionTable.add(new Label("File", skin)).right();
-		selectionTable.add(fileChooser).fill();
-		selectionTable.row().pad(3f);
-		selectionTable.add(new Label("Entity", skin)).right();
-		selectionTable.add(entityChooser).fill();
-		selectionTable.row().pad(3f);
-		selectionTable.add(new Label("Animation", skin)).right();
-		selectionTable.add(animationChooser).fill();
-		selectionTable.row().pad(3f);
-		selectionTable.add(new Label("Character map", skin)).right();
-		selectionTable.add(charmapChooser).fill();
-
-		Table controlTable = new Table(skin);
-
-		timeSlider = new Slider(0f, 2000f, 1, false, skin);
-		timeSliderListener = new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				if (animator == null)
-					return;
-				animator.setTime(timeSlider.getValue());
-				animator.update(0f);
-			}
-		};
-		timeSlider.addListener(timeSliderListener);
-
-		timeLabel = new Label("---", skin);
-
-		playCheckbox = new CheckBox("Play", skin);
-		playCheckbox.setChecked(play);
-		playCheckbox.addListener(new ChangeListener() {
-			@Override
-			public void changed(ChangeEvent event, Actor actor) {
-				boolean playing = playCheckbox.isChecked();
-				playCheckbox.setText(playing ? "Play" : "Pause");
-				play = playing;
-			}
-		});
-
-		transitionCheckbox = new CheckBox("Transition", skin);
+		final CheckBox transitionCheckbox = new CheckBox("Transition", skin);
 		transitionCheckbox.setChecked(transition);
 		transitionCheckbox.addListener(new ChangeListener() {
 			@Override
@@ -211,35 +164,239 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 		});
 
-		controlTable.row();
-		controlTable.add(new Label("Timeline", skin)).colspan(2).expandX().align(Align.bottom);
-		controlTable.row();
-		controlTable.add(timeSlider).colspan(2).expandX().fillX();
-		controlTable.row();
-		controlTable.add(timeLabel).colspan(2).expandX().align(Align.top);
-		controlTable.row();
-		controlTable.add(playCheckbox).expandX().fillX();
-		controlTable.add(transitionCheckbox).expandX().fillX();
-		controlTable.row();
-		controlTable.add(fpsLabel).colspan(2).expandX().padRight(10f).right();
+		charmapChooser = new SelectBox<SpriterCharacterMap>(skin);
+		charmapChooser.setName("Charmaps");
+		charmapChooser.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				changeCharacterMap(charmapChooser.getSelected());
+				lastUsedSelectBox = charmapChooser;
+			}
+		});
 
-		menuTable.add(selectionTable);
-		menuTable.add(controlTable).expandX().fill();
+		positionXSlider = new SpriterDemoAnimatorSlider(0f, 1000f, 1f, skin) {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setX(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getX();
+			}
+		};
+
+		positionYSlider = new SpriterDemoAnimatorSlider(0f, 1000f, 1f, skin) {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setY(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getY();
+			}
+		};
+
+		angleSlider = new SpriterDemoAnimatorSlider(0, 360, 1f, skin, "%.0f") {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setAngle(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getAngle();
+			}
+		};
+
+		pivotXSlider = new SpriterDemoAnimatorSlider(-1000f, 1000f, 1f, skin, "%.0f") {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setPivotX(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getPivotX();
+			}
+		};
+
+		pivotYSlider = new SpriterDemoAnimatorSlider(-1000f, 1000f, 1f, skin, "%.0f") {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setPivotY(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getPivotY();
+			}
+		};
+
+		scaleXSlider = new SpriterDemoAnimatorSlider(-10f, 10f, 0.1f, skin) {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setScaleX(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getScaleX();
+			}
+		};
+
+		scaleYSlider = new SpriterDemoAnimatorSlider(-10f, 10f, 0.1f, skin) {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setScaleY(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getScaleY();
+			}
+		};
+
+		alphaSlider = new SpriterDemoAnimatorSlider(0f, 1f, 0.01f, skin, "%.2f") {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setAlpha(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getAlpha();
+			}
+		};
+
+		speedSlider = new SpriterDemoAnimatorSlider(0f, 10f, 0.1f, skin) {
+			@Override public void setValue(SpriterAnimator animator, float value) {
+				animator.setSpeed(value);
+			}
+			@Override protected float getValue(SpriterAnimator animator) {
+				return animator.getSpeed();
+			}
+		};
+
+		allAnimatorSliders = new SpriterDemoAnimatorSlider[]{
+				positionXSlider,
+				positionYSlider,
+				scaleXSlider,
+				scaleYSlider,
+				pivotXSlider,
+				pivotYSlider,
+				angleSlider,
+				alphaSlider,
+				speedSlider
+		};
+
+		metaLabel = new Label("Meta: ", skin);
+		metaLabel.setWrap(true);
+		metaLabel.setAlignment(Align.topLeft);
+
+		spriterPlaceholder = new Label("No animator", skin);
+		spriterPlaceholder.setAlignment(Align.center);
+
+		spriterAnimator = new SpriterAnimatorActor(animator);
+		spriterAnimator.debug();
+
+		playPauseButton = new CheckBox("Play", skin);
+		playPauseButton.setChecked(true);
+		playPauseButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				boolean playing = playPauseButton.isChecked();
+				playPauseButton.setText(playing ? "Play" : "Pause");
+				spriterAnimator.setDisabled(!playing);
+			}
+		});
+
+		timeSlider = new Slider(0f, 2000f, 1, false, skin);
+		timeSlider.addListener(timeSliderListener = new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				if (animator == null)
+					return;
+				animator.setTime(timeSlider.getValue());
+				animator.update(0f);
+			}
+		});
+
+		timeLabel = new Label("---", skin);
+
+		// Put everything in place
+
+		Table titleTable = new Table(skin);
+		titleTable.add(titleLabel).pad(6f);
+		titleTable.add().expandX();
+		titleTable.add(fpsLabel).padRight(10f);
+
+		Table selectionTable = new Table(skin);
+		selectionTable.defaults().pad(3f);
+
+		Table filesTable = new Table(skin);
+		filesTable.row().pad(3f);
+		filesTable.add(fileChooser).expand().fill();
+		filesTable.add(fileFinder);
+
+		Table animationsTable = new Table(skin);
+		animationsTable.row();
+		animationsTable.add(animationChooser).expand().fill();
+		animationsTable.add(transitionCheckbox).fillX();
+
+		Table menuTable = new Table(skin);
+		menuTable.defaults().pad(3f).expandX().fillX();
+		menuTable.row();
+		menuTable.add(titleTable).colspan(2);
+		menuTable.row();
+		menuTable.add("File");
+		menuTable.add(filesTable);
+		menuTable.row();
+		menuTable.add("Entity");
+		menuTable.add(entityChooser);
+		menuTable.row();
+		menuTable.add("Animation");
+		menuTable.add(animationsTable);
+		menuTable.row();
+		menuTable.add("Maps");
+		menuTable.add(charmapChooser);
+		menuTable.row();
+		menuTable.add("Position X");
+		menuTable.add(positionXSlider);
+		menuTable.row();
+		menuTable.add("Position Y");
+		menuTable.add(positionYSlider);
+		menuTable.row();
+		menuTable.add("Angle");
+		menuTable.add(angleSlider);
+		menuTable.row();
+		menuTable.add("Pivot X");
+		menuTable.add(pivotXSlider);
+		menuTable.row();
+		menuTable.add("Pivot Y");
+		menuTable.add(pivotYSlider);
+		menuTable.row();
+		menuTable.add("Scale X");
+		menuTable.add(scaleXSlider);
+		menuTable.row();
+		menuTable.add("Scale Y");
+		menuTable.add(scaleYSlider);
+		menuTable.row();
+		menuTable.add("Alpha");
+		menuTable.add(alphaSlider);
+		menuTable.row();
+		menuTable.add("Speed");
+		menuTable.add(speedSlider);
+		menuTable.row();
+		menuTable.add().expandY();
 
 		Stack contentStack = new Stack();
 		contentStack.add(spriterPlaceholder);
 		contentStack.add(metaLabel);
+		contentStack.add(spriterAnimator);
 
-		// rootTable.row().pad(3f);
-		// rootTable.add(metaLabel).expandX().left();
+		Table timelineTable = new Table(skin);
+		timelineTable.row();
+		timelineTable.add("Timeline").expandX().align(Align.bottom);
+		timelineTable.row();
+		timelineTable.add(timeSlider).expandX().fillX();
+		timelineTable.row();
+		timelineTable.add(timeLabel).expandX().align(Align.top);
+
+		Table controlTable = new Table(skin);
+		controlTable.add(playPauseButton).space(5f).expandY().fillY();
+		controlTable.add(timelineTable).expandX().fillX();
+
+		Table rootTable = new Table(skin);
+		rootTable.setFillParent(true);
 		rootTable.row();
+		rootTable.add(menuTable).expandY().fill();
 		rootTable.add(contentStack).expand().fill();
 		rootTable.row();
-		rootTable.add(menuTable).expandX().fillX();
+		rootTable.add(controlTable).colspan(2).expandX().fillX();
 
 		stage.addActor(rootTable);
-		rootTable.setFillParent(true);
-		// SpriterDemoUtils.debug(rootTable);
+
+//		SpriterDemoUtils.debug(rootTable);
+
+		// Bring input processing to the party
 
 		InputProcessor globalInput = new InputProcessor() {
 			int firstX, firstY;
@@ -291,8 +448,8 @@ public class SpriterDemoApp implements ApplicationListener {
 			public boolean touchDragged(int screenX, int screenY, int pointer) {
 				int x = screenX - firstX;
 				int y = screenY - firstY;
-				offsetX += x;
-				offsetY -= y;
+				positionXSlider.setValue(positionXSlider.getValue() + x);
+				positionYSlider.setValue(positionYSlider.getValue() - y);
 				firstX = screenX;
 				firstY = screenY;
 				return true;
@@ -305,7 +462,9 @@ public class SpriterDemoApp implements ApplicationListener {
 
 			@Override
 			public boolean scrolled(int amount) {
-				spriterCamera.zoom += amount * 0.05f;
+				amount *= 0.05f;	// Zoom coefficient
+				scaleXSlider.setValue(scaleXSlider.getValue() + amount);
+				scaleYSlider.setValue(scaleYSlider.getValue() + amount);
 				return false;
 			}
 		};
@@ -327,15 +486,15 @@ public class SpriterDemoApp implements ApplicationListener {
 		fileChooser.setItems(files);
 
 		if (files.size > 0)
-			loadSpriterFile(files.first());
+			changeSpriterFile(files.first());
 
 		lastUsedSelectBox = fileChooser;
-		
-		if(play)
+
+		if(playPauseButton.isChecked())
 			animator.play(animator.getAnimations().iterator().next());
 	}
 
-	private void loadSpriterFile(FileHandle file) {
+	private void changeSpriterFile(FileHandle file) {
 
 		AssetDescriptor<SpriterData> desc = new AssetDescriptor<SpriterData>(file, SpriterData.class);
 		assetManager.load(desc);
@@ -403,13 +562,14 @@ public class SpriterDemoApp implements ApplicationListener {
 		entityChooser.setItems(animators);
 
 		if (animators.size > 0)
-			setAnimator(animators.first());
+			changeAnimator(animators.first());
 	}
 
-	private void setAnimator(SpriterAnimator anim) {
+	private void changeAnimator(SpriterAnimator anim) {
 		this.animator = anim;
 
 		spriterPlaceholder.setVisible(false);
+		spriterAnimator.setAnimator(anim);
 
 		entityChooser.setSelected(animator);
 
@@ -429,10 +589,21 @@ public class SpriterDemoApp implements ApplicationListener {
 			charmapChooser.setItems(new SpriterCharacterMap[0]);
 			charmapChooser.setDisabled(true);
 		}
+
+		for(SpriterDemoAnimatorSlider slider : allAnimatorSliders)
+			slider.update(animator);
+
+		float x = spriterAnimator.getWidth() / 2f;
+		if(x == 0f) x = Gdx.graphics.getWidth() / 3f;
+		float y = spriterAnimator.getHeight() / 3f;
+		if(y == 0f) y = Gdx.graphics.getHeight() / 4f;
+		
+		positionXSlider.setValue(x);
+		positionYSlider.setValue(y);
 	}
 
-	private void setAnimation(String anim) {
-		if (transition) {
+	private void changeAnimation(String anim) {
+		if (transition && animator.getCurrentAnimation() != null) {
 			animator.transition(anim, animator.getLength() - animator.getTime());
 		} else {
 			animator.play(anim);
@@ -440,7 +611,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		timeSlider.setRange(0f, animator.getLength());
 	}
 
-	private void setCharacterMap(SpriterCharacterMap characterMap) {
+	private void changeCharacterMap(SpriterCharacterMap characterMap) {
 		animator.clearCharacterMaps();
 		animator.addCharacterMap(characterMap);
 	}
@@ -451,20 +622,14 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		float delta = Gdx.graphics.getDeltaTime();
 
-		fpsLabel.setText(Gdx.graphics.getFramesPerSecond() + " FPS");
-
 		camera.update();
-		spriterCamera.update();
 
 		stage.act(delta);
 
 		if (animator != null) {
-			if (play) {
-				animator.update(delta);
-				timeSlider.removeListener(timeSliderListener);
-				timeSlider.setValue(animator.getTime());
-				timeSlider.addListener(timeSliderListener);
-			}
+			timeSlider.removeListener(timeSliderListener);
+			timeSlider.setValue(animator.getTime());
+			timeSlider.addListener(timeSliderListener);
 			String metaText = "";
 			FrameMetadata md = animator.getCurrentMetadata();
 			if (md.animationVars.size > 0) {
@@ -506,36 +671,18 @@ public class SpriterDemoApp implements ApplicationListener {
 
 			metaLabel.setText(metaText);
 			timeLabel.setText(String.format("[%4.0f / %.0f]", animator.getTime(), animator.getLength()));
-
-			// Update position
-			animator.setPosition(offsetX + spriterPlaceholder.getX() + spriterPlaceholder.getWidth() / 2f, offsetY + spriterPlaceholder.getY() + spriterPlaceholder.getHeight() / 4f);
-
-			renderer.setProjectionMatrix(spriterCamera.combined);
-			batch.setProjectionMatrix(spriterCamera.combined);
-
-			batch.begin();
-			renderer.begin(ShapeType.Line);
-
-			// Draw position
-			renderer.circle(animator.getX(), animator.getY(), 1f);
-
-			// Draw animator
-			animator.draw(batch, renderer);
-
-			batch.end();
-			renderer.end();
 		}
 
 		// Draw stage
 		stage.draw();
+		
+		positionXSlider.setRange(0, spriterAnimator.getWidth());
+		positionYSlider.setRange(0, spriterAnimator.getHeight());
 	}
 
 	@Override
 	public void resize(int width, int height) {
 		stage.getViewport().update(width, height, true);
-		spriterCamera.setToOrtho(false, width, height);
-		if (animator != null)
-			animator.setPosition(width / 4f, 12f);
 	}
 
 	@Override
@@ -553,8 +700,65 @@ public class SpriterDemoApp implements ApplicationListener {
 	@Override
 	public void dispose() {
 		stage.dispose();
-		renderer.dispose();
 		batch.dispose();
 		assetManager.dispose();
+	}
+
+	private abstract class SpriterDemoAnimatorSlider extends Table {
+		private final Slider slider;
+		private final ChangeListener listener;
+		private final Label valueLabel;
+		private final String textFormat;
+
+		public SpriterDemoAnimatorSlider(float min, float max, float step, Skin skin) {
+			this(min, max, step, skin, "%.1f");
+		}
+
+		public SpriterDemoAnimatorSlider(float min, float max, float step, Skin skin, final String format) {
+			textFormat = format;
+			slider = new Slider(min, max, step, false, skin);
+			slider.setValue((max - min) / 2f);
+			slider.addListener(listener = new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					if (animator == null)
+						return;
+					setValue(animator, slider.getValue());
+				}
+			});
+			slider.addListener(new ChangeListener() {
+				@Override
+				public void changed(ChangeEvent event, Actor actor) {
+					valueLabel.setText(String.format(textFormat, slider.getValue()));
+				}
+			});
+			valueLabel = new Label("", skin);
+
+			this.add(slider).expandX().fill();
+			this.add(valueLabel).minWidth(30f);
+		}
+
+		public float getValue() {
+			return slider.getValue();
+		}
+
+		public void setValue(float value) {
+			slider.setValue(value);
+		}
+
+		public void setRange(float min, float max) {
+			slider.setRange(min, max);
+		}
+
+		public void update(SpriterAnimator animator) {
+			slider.removeListener(listener);
+			float value = getValue(animator);
+			slider.setValue(value);
+			slider.addListener(listener);
+		}
+
+		public abstract void setValue(SpriterAnimator animator, float value);
+
+		protected abstract float getValue(SpriterAnimator animator);
 	}
 }

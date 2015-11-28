@@ -9,6 +9,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
@@ -334,39 +335,48 @@ public class SpriterAnimator {
 		for (SpriterSound info : metaData.sounds)
 			playSound(assets.getSound(applyCharacterMap(info.file)), info);
 
-		if (renderer != null) {
-			for (SpriterObject info : frameData.pointData)
-				drawPoint(renderer, info);
-
-			for (Entry<SpriterObject> entry : frameData.boxData)
-				drawBox(renderer, entity.objectInfos.get(entry.key), entry.value);
-		}
+		if (renderer != null)
+			drawDebug(renderer);
 
 		for (String eventName : metaData.events)
 			dispatchEvent(eventName);
 	}
 
-	protected void drawObject(Batch batch, Sprite sprite, SpriterObject object) {
-		
-		float pivotX = this.pivotX + (sprite.getWidth() * object.pivotX);
-		float x = this.x + object.x - pivotX;
-		
-		float pivotY = this.pivotY + (sprite.getHeight() * object.pivotY);
-		float y = this.y + object.y - pivotY;
+	public void drawDebug(ShapeRenderer renderer) {
+		for (SpriterObject info : frameData.pointData)
+			drawPoint(renderer, info);
 
-		float angle = this.angle + object.angle;
-		
+		for (Entry<SpriterObject> entry : frameData.boxData)
+			drawBox(renderer, entity.objectInfos.get(entry.key), entry.value);
+	}
+
+	protected void drawObject(Batch batch, Sprite sprite, SpriterObject object) {
+
 		float scaleX = this.scaleX * object.scaleX;
 		float scaleY = this.scaleY * object.scaleY;
+		
+		float originX = sprite.getWidth() * object.pivotX;
+		float originY = sprite.getHeight() * object.pivotY;
+		
+		float px = scaleX * object.x;
+		float py = scaleY * object.y;
+
+		float s = MathUtils.sinDeg(this.angle);
+		float c = MathUtils.cosDeg(this.angle);
+
+		float x = px * c - py * s + this.x - originX - this.pivotX;
+		float y = px * s + py * c + this.y - originY - this.pivotY;
+
+		float angle = (this.angle + Math.signum(this.scaleX * this.scaleY) * object.angle) % 360;
 		
 		float alpha = this.alpha * object.alpha;
 
 		sprite.setX(x);
 		sprite.setY(y);
-		sprite.setOrigin(pivotX, pivotY);
+		sprite.setOrigin(originX, originY);
 		sprite.setRotation(angle);
 		sprite.setAlpha(alpha);
-		sprite.setScale(scaleX, scaleY);
+		sprite.setScale(scaleY, scaleX);
 		
 		sprite.draw(batch);
 	}
@@ -376,11 +386,11 @@ public class SpriterAnimator {
 	}
 
 	protected void drawPoint(ShapeRenderer shapeRenderer, SpriterObject info) {
-		shapeRenderer.circle(this.x + info.x, this.y + info.y, Math.max(info.scaleX, info.scaleY));
+		shapeRenderer.circle(this.x + info.x - this.pivotX, this.y + info.y - this.pivotY, Math.max(info.scaleX * this.scaleX, info.scaleY * this.scaleY));
 	}
 
 	protected void drawBox(ShapeRenderer shapeRenderer, SpriterObjectInfo objInfo, SpriterObject info) {
-		shapeRenderer.rect(this.x + info.x, this.y + info.y, objInfo.width, objInfo.height);
+		shapeRenderer.rect(this.x + info.x - this.pivotX, this.y + info.y - this.pivotY, objInfo.width * info.scaleX * this.scaleX, objInfo.height * info.scaleY * this.scaleY);
 	}
 
 	protected void dispatchEvent(String eventName) {

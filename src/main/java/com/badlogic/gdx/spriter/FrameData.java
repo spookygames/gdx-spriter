@@ -5,6 +5,7 @@
 
 package com.badlogic.gdx.spriter;
 
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFileInfo;
@@ -226,12 +227,12 @@ public class FrameData {
 		return object;
 	}
 
-	private static void applyParentTransform(SpriterSpatial child, SpriterSpatial parent) {
+	static void applyParentTransform(SpriterSpatial child, SpriterSpatial parent) {
 		float px = parent.scaleX * child.x;
 		float py = parent.scaleY * child.y;
-		double angleRad = parent.angle * Math.PI / 180;
-		float s = (float) Math.sin(angleRad);
-		float c = (float) Math.cos(angleRad);
+
+		float s = MathUtils.sinDeg(parent.angle);
+		float c = MathUtils.cosDeg(parent.angle);
 
 		child.x = px * c - py * s + parent.x;
 		child.y = px * s + py * c + parent.y;
