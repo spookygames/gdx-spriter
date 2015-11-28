@@ -20,6 +20,7 @@ import com.badlogic.gdx.spriter.data.SpriterMapInstruction;
 import com.badlogic.gdx.spriter.data.SpriterObject;
 import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
 import com.badlogic.gdx.spriter.data.SpriterSound;
+import com.badlogic.gdx.spriter.data.SpriterSpatial;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap.Entry;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -36,14 +37,9 @@ public class SpriterAnimator {
 	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>();
 	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
-	private float x = 0f;
-	private float y = 0f;
+	private final SpriterSpatial spatial = new SpriterSpatial();	// This one will be used for all things geometric
 	private float pivotX = 0f;
 	private float pivotY = 0f;
-	private float scaleX = 1.0f;
-	private float scaleY = 1.0f;
-	private float angle = 0f;
-	private float alpha = 1.0f;
 
 	private float speed = 1.0f;
 	private float time = 0f;
@@ -156,24 +152,24 @@ public class SpriterAnimator {
 	}
 
 	public float getX() {
-		return x;
+		return this.spatial.x;
 	}
 
 	public void setX(float x) {
-		this.x = x;
+		this.spatial.x = x;
 	}
 
 	public float getY() {
-		return y;
+		return spatial.y;
 	}
 
 	public void setY(float y) {
-		this.y = y;
+		this.spatial.y = y;
 	}
 
 	public void setPosition(float x, float y) {
-		this.x = x;
-		this.y = y;
+		this.spatial.x = x;
+		this.spatial.y = y;
 	}
 
 	public float getPivotX() {
@@ -198,40 +194,40 @@ public class SpriterAnimator {
 	}
 
 	public float getScaleX() {
-		return scaleX;
+		return spatial.scaleX;
 	}
 
 	public void setScaleX(float scaleX) {
-		this.scaleX = scaleX;
+		this.spatial.scaleX = scaleX;
 	}
 
 	public float getScaleY() {
-		return scaleY;
+		return spatial.scaleY;
 	}
 
 	public void setScaleY(float scaleY) {
-		this.scaleY = scaleY;
+		this.spatial.scaleY = scaleY;
 	}
 
 	public void setScale(float scaleX, float scaleY) {
-		this.scaleX = scaleX;
-		this.scaleY = scaleY;
+		this.spatial.scaleX = scaleX;
+		this.spatial.scaleY = scaleY;
 	}
 
 	public float getAngle() {
-		return angle;
+		return spatial.angle;
 	}
 
 	public void setAngle(float angle) {
-		this.angle = angle;
+		this.spatial.angle = angle;
 	}
 
 	public float getAlpha() {
-		return alpha;
+		return spatial.alpha;
 	}
 
 	public void setAlpha(float alpha) {
-		this.alpha = alpha;
+		this.spatial.alpha = alpha;
 	}
 
 	public FrameData getCurrentData() {
@@ -352,45 +348,40 @@ public class SpriterAnimator {
 
 	protected void drawObject(Batch batch, Sprite sprite, SpriterObject object) {
 
-		float scaleX = this.scaleX * object.scaleX;
-		float scaleY = this.scaleY * object.scaleY;
+		FrameData.applyParentTransform(object, spatial);
+
+		float scaleX = object.scaleX;
+		float scaleY = object.scaleY;
 		
 		float originX = sprite.getWidth() * object.pivotX;
 		float originY = sprite.getHeight() * object.pivotY;
 		
-		float px = scaleX * object.x;
-		float py = scaleY * object.y;
-
-		float s = MathUtils.sinDeg(this.angle);
-		float c = MathUtils.cosDeg(this.angle);
-
-		float x = px * c - py * s + this.x - originX - this.pivotX;
-		float y = px * s + py * c + this.y - originY - this.pivotY;
-
-		float angle = (this.angle + Math.signum(this.scaleX * this.scaleY) * object.angle) % 360;
+		float x = object.x - originX - this.pivotX;
+		float y = object.y - originY - this.pivotY;
 		
-		float alpha = this.alpha * object.alpha;
+		float angle = object.angle;
+		
+		float alpha = this.spatial.alpha * object.alpha;
 
-		sprite.setX(x);
-		sprite.setY(y);
 		sprite.setOrigin(originX, originY);
+		sprite.setScale(scaleX, scaleY);
 		sprite.setRotation(angle);
+		sprite.setPosition(x, y);
 		sprite.setAlpha(alpha);
-		sprite.setScale(scaleY, scaleX);
 		
 		sprite.draw(batch);
 	}
-
+	
 	protected void playSound(Sound sound, SpriterSound info) {
 		sound.play(info.volume, 1.0f, info.panning);
 	}
 
 	protected void drawPoint(ShapeRenderer shapeRenderer, SpriterObject info) {
-		shapeRenderer.circle(this.x + info.x - this.pivotX, this.y + info.y - this.pivotY, Math.max(info.scaleX * this.scaleX, info.scaleY * this.scaleY));
+		shapeRenderer.circle(this.spatial.x + info.x - this.pivotX, this.spatial.y + info.y - this.pivotY, Math.max(info.scaleX * this.spatial.scaleX, info.scaleY * this.spatial.scaleY));
 	}
 
 	protected void drawBox(ShapeRenderer shapeRenderer, SpriterObjectInfo objInfo, SpriterObject info) {
-		shapeRenderer.rect(this.x + info.x - this.pivotX, this.y + info.y - this.pivotY, objInfo.width * info.scaleX * this.scaleX, objInfo.height * info.scaleY * this.scaleY);
+		shapeRenderer.rect(this.spatial.x + info.x - this.pivotX, this.spatial.y + info.y - this.pivotY, objInfo.width * info.scaleX * this.spatial.scaleX, objInfo.height * info.scaleY * this.spatial.scaleY);
 	}
 
 	protected void dispatchEvent(String eventName) {
