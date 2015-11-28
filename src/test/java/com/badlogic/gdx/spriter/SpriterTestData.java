@@ -78,7 +78,7 @@ public class SpriterTestData {
 
 	private static SpriterData BuildLetterBotSCML() {
 		SpriterData data = new SpriterData();
-		data.scmlVersion = "1.0";
+		data.version = "1.0";
 		data.generator = "BrashMonkey Spriter";
 		data.generatorVersion = "r3";
 

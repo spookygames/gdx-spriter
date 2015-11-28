@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class SpriterData {
 
-	public String scmlVersion;
+	public String version;
 	public String generator;
 	public String generatorVersion;
 
@@ -21,7 +21,7 @@ public class SpriterData {
 
 	@Override
 	public String toString() {
-		return "SpriterData [scmlVersion=" + scmlVersion + ", generator=" + generator + ", generatorVersion=" + generatorVersion + ", folders=" + folders + ", entities=" + entities + ", tags=" + tags + "]";
+		return "SpriterData [version=" + version + ", generator=" + generator + ", generatorVersion=" + generatorVersion + ", folders=" + folders + ", entities=" + entities + ", tags=" + tags + "]";
 	}
 
 }
