@@ -9,7 +9,6 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
@@ -273,6 +272,10 @@ public class SpriterAnimator {
 	}
 
 	public void update(float deltaTime) {
+		
+		if(currentAnimation == null)
+			return;
+		
 		deltaTime *= 1000f; // We're talking milliseconds here
 		float elapsed = deltaTime * speed;
 

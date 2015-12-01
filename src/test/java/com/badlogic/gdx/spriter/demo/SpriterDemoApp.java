@@ -394,7 +394,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		stage.addActor(rootTable);
 
-//		SpriterDemoUtils.debug(rootTable);
+		//		SpriterDemoUtils.debug(rootTable);
 
 		// Bring input processing to the party
 
@@ -485,9 +485,6 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		fileChooser.setItems(files);
 
-		if (files.size > 0)
-			changeSpriterFile(files.first());
-
 		lastUsedSelectBox = fileChooser;
 
 		if(playPauseButton.isChecked())
@@ -499,19 +496,12 @@ public class SpriterDemoApp implements ApplicationListener {
 		AssetDescriptor<SpriterData> desc = new AssetDescriptor<SpriterData>(file, SpriterData.class);
 		assetManager.load(desc);
 
-		boolean done = false;
-		boolean failed = false;
-		while (!done) {
-			try {
-				assetManager.finishLoading();
-				done = true;
-			} catch (GdxRuntimeException ex) {
-				failed = true;
-				popup("Loading error", ex.getLocalizedMessage());
-			}
-		}
-		if (failed)
+		try {
+			assetManager.finishLoading();
+		} catch (GdxRuntimeException ex) {
+			popup("Loading error", ex.getLocalizedMessage());
 			return;
+		}
 
 		SpriterData data = assetManager.get(desc);
 
@@ -597,7 +587,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		if(x == 0f) x = Gdx.graphics.getWidth() / 3f;
 		float y = spriterAnimator.getHeight() / 3f;
 		if(y == 0f) y = Gdx.graphics.getHeight() / 4f;
-		
+
 		positionXSlider.setValue(x);
 		positionYSlider.setValue(y);
 	}
@@ -626,7 +616,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		stage.act(delta);
 
-		if (animator != null) {
+		if (animator != null && animator.getCurrentAnimation() != null) {
 			timeSlider.removeListener(timeSliderListener);
 			timeSlider.setValue(animator.getTime());
 			timeSlider.addListener(timeSliderListener);
@@ -675,7 +665,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		// Draw stage
 		stage.draw();
-		
+
 		positionXSlider.setRange(0, spriterAnimator.getWidth());
 		positionYSlider.setRange(0, spriterAnimator.getHeight());
 	}

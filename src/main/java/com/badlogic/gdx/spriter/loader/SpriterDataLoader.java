@@ -25,7 +25,6 @@ import com.badlogic.gdx.utils.GdxRuntimeException;
 public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, SpriterDataLoader.SpriterDataParameter> {
 
 	private SpriterData data = null;
-	private String rootPath = null;
 
 	public SpriterDataLoader(FileHandleResolver resolver) {
 		super(resolver);
@@ -34,11 +33,10 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	@Override
 	public SpriterData load(AssetManager am, String fileName, FileHandle file, SpriterDataParameter param) {
 
-		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, rootPath);
+		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, defineRootPath(file, param));
 
 		SpriterData result = this.data;
 		this.data = null;
-		this.rootPath = null;
 		return result;
 	}
 
@@ -47,19 +45,8 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	public Array<AssetDescriptor> getDependencies(String fileName, FileHandle file, SpriterDataParameter param) {
 		Array<AssetDescriptor> deps = null;
 
-		SpriterDataFormat format = null;
-
-		if (param != null) {
-			if (param.rootFolder != null)
-				rootPath = param.rootFolder + "/";
-			if (param.format != null)
-				format = param.format;
-		}
-
-		if (rootPath == null)
-			rootPath = file.parent().path() + "/";
-		if (format == null)
-			format = SpriterDataFormat.defineFormat(file);
+		SpriterDataFormat format = defineFormat(file, param);
+		String rootPath = defineRootPath(file, param);
 
 		try {
 
@@ -85,6 +72,22 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 		}
 
 		return deps;
+	}
+
+	private SpriterDataFormat defineFormat(FileHandle file, SpriterDataParameter param) {
+		if (param != null && param.format != null) {
+			return param.format;
+		} else {
+			return SpriterDataFormat.defineFormat(file);
+		}
+	}
+
+	private String defineRootPath(FileHandle file, SpriterDataParameter param) {
+		if (param != null && param.rootFolder != null) {
+			return param.rootFolder + "/";
+		} else {
+			return file.parent().path() + "/";
+		}
 	}
 
 	/**
