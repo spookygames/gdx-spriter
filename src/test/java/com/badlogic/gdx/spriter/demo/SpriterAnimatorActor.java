@@ -48,10 +48,10 @@ public class SpriterAnimatorActor extends Widget implements Disableable {
 	public void act(float delta) {
 		super.act(delta);
 
-		if(disabled || animator == null)
+		if(animator == null)
 			return;
 
-		animator.update(delta);
+		animator.update(disabled ? 0f : delta);
 	}
 
 	@Override
