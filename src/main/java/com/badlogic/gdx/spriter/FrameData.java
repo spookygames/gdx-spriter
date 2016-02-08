@@ -240,6 +240,7 @@ public class FrameData {
 		child.scaleY *= parent.scaleY;
 		child.angle = parent.angle + Math.signum(parent.scaleX * parent.scaleY) * child.angle;
 		child.angle %= 360.0f;
+		child.alpha *= parent.alpha;
 	}
 
 	public static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {

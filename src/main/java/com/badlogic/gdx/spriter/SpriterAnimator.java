@@ -364,8 +364,8 @@ public class SpriterAnimator {
 		
 		float angle = object.angle;
 		
-		float alpha = this.spatial.alpha * object.alpha;
-
+		float alpha = object.alpha;
+		
 		sprite.setOrigin(originX, originY);
 		sprite.setScale(scaleX, scaleY);
 		sprite.setRotation(angle);
@@ -380,11 +380,18 @@ public class SpriterAnimator {
 	}
 
 	protected void drawPoint(ShapeRenderer shapeRenderer, SpriterObject info) {
-		shapeRenderer.circle(this.spatial.x + info.x - this.pivotX, this.spatial.y + info.y - this.pivotY, Math.max(info.scaleX * this.spatial.scaleX, info.scaleY * this.spatial.scaleY));
+		float x = this.spatial.x + info.x - this.pivotX;
+		float y = this.spatial.y + info.y - this.pivotY;
+		float radius = Math.max(info.scaleX * this.spatial.scaleX, info.scaleY * this.spatial.scaleY);
+		shapeRenderer.circle(x, y, radius);
 	}
 
 	protected void drawBox(ShapeRenderer shapeRenderer, SpriterObjectInfo objInfo, SpriterObject info) {
-		shapeRenderer.rect(this.spatial.x + info.x - this.pivotX, this.spatial.y + info.y - this.pivotY, objInfo.width * info.scaleX * this.spatial.scaleX, objInfo.height * info.scaleY * this.spatial.scaleY);
+		float x = this.spatial.x + info.x - this.pivotX;
+		float y = this.spatial.y + info.y - this.pivotY;
+		float width = objInfo.width * info.scaleX * this.spatial.scaleX;
+		float height = objInfo.height * info.scaleY * this.spatial.scaleY * -1f;	// Don't forget Y is the other way round
+		shapeRenderer.rect(x, y, width, height);
 	}
 
 	protected void dispatchEvent(String eventName) {
