@@ -57,6 +57,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 	// Widgets
 	Stage stage;
+	public Table rootTable;
 
 	SelectBox<FileHandle> fileChooser;
 	SelectBox<SpriterAnimator> entityChooser;
@@ -78,7 +79,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	Label spriterPlaceholder;
 	SpriterAnimatorActor spriterAnimator;
 
-	CheckBox playPauseButton;
+	TextButton playPauseButton;
 	Slider timeSlider;
 	ChangeListener timeSliderListener;
 	Label timeLabel;
@@ -384,7 +385,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		controlTable.add(playPauseButton).space(5f).expandY().fillY();
 		controlTable.add(timelineTable).expandX().fillX();
 
-		Table rootTable = new Table(skin);
+		rootTable = new Table(skin);
 		rootTable.setFillParent(true);
 		rootTable.row();
 		rootTable.add(menuTable).expandY().fill();
@@ -393,8 +394,6 @@ public class SpriterDemoApp implements ApplicationListener {
 		rootTable.add(controlTable).colspan(2).expandX().fillX();
 
 		stage.addActor(rootTable);
-
-		//		SpriterDemoUtils.debug(rootTable);
 
 		// Bring input processing to the party
 

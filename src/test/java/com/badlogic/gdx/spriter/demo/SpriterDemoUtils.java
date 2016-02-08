@@ -14,7 +14,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class SpriterDemoUtils {
 
-	static void debug(Actor table) {
+	public static void debug(Actor table) {
 		if (table instanceof Group) {
 			for (Actor widget : ((Group) table).getChildren()) {
 				debug(widget);
