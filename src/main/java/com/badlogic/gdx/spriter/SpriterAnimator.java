@@ -14,6 +14,7 @@ import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterEntity;
+import com.badlogic.gdx.spriter.data.SpriterFile;
 import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterMapInstruction;
 import com.badlogic.gdx.spriter.data.SpriterObject;
@@ -36,7 +37,8 @@ public class SpriterAnimator {
 	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>();
 	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>();
 
-	private final SpriterSpatial spatial = new SpriterSpatial();	// This one will be used for all things geometric
+	// This one will be used for all things geometric
+	private final SpriterSpatial spatial = new SpriterSpatial();
 	private float pivotX = 0f;
 	private float pivotY = 0f;
 
@@ -84,8 +86,8 @@ public class SpriterAnimator {
 	}
 
 	public void addCharacterMap(String characterMapName) {
-		for(SpriterCharacterMap map : entity.characterMaps) {
-			if(characterMapName.equals(map.name)) {
+		for (SpriterCharacterMap map : entity.characterMaps) {
+			if (characterMapName.equals(map.name)) {
 				addCharacterMap(map);
 				break;
 			}
@@ -93,11 +95,11 @@ public class SpriterAnimator {
 	}
 
 	public void addCharacterMap(SpriterCharacterMap characterMap) {
-		if(characterMap == null || this.characterMaps.contains(characterMap, true))
+		if (characterMap == null || this.characterMaps.contains(characterMap, true))
 			return;
 		this.characterMaps.add(characterMap);
 	}
-	
+
 	public Array<SpriterCharacterMap> getCharacterMaps() {
 		return this.characterMaps;
 	}
@@ -272,10 +274,10 @@ public class SpriterAnimator {
 	}
 
 	public void update(float deltaTime) {
-		
-		if(currentAnimation == null)
+
+		if (currentAnimation == null)
 			return;
-		
+
 		deltaTime *= 1000f; // We're talking milliseconds here
 		float elapsed = deltaTime * speed;
 
@@ -328,8 +330,11 @@ public class SpriterAnimator {
 	}
 
 	public void draw(Batch batch, ShapeRenderer renderer) {
-		for (SpriterObject info : frameData.spriteData)
-			drawObject(batch, assets.getSprite(applyCharacterMap(info.file)), info);
+		for (SpriterObject info : frameData.spriteData) {
+			SpriterFileInfo file = applyCharacterMap(info.file);
+			preprocessObject(info, file);
+			drawObject(batch, assets.getSprite(file), info);
+		}
 
 		for (SpriterSound info : metaData.sounds)
 			playSound(assets.getSound(applyCharacterMap(info.file)), info);
@@ -351,30 +356,28 @@ public class SpriterAnimator {
 
 	protected void drawObject(Batch batch, Sprite sprite, SpriterObject object) {
 
-		FrameData.applyParentTransform(object, spatial);
-
 		float scaleX = object.scaleX;
 		float scaleY = object.scaleY;
-		
+
 		float originX = sprite.getWidth() * object.pivotX;
 		float originY = sprite.getHeight() * object.pivotY;
-		
+
 		float x = object.x - originX - this.pivotX;
 		float y = object.y - originY - this.pivotY;
-		
+
 		float angle = object.angle;
-		
+
 		float alpha = object.alpha;
-		
+
 		sprite.setOrigin(originX, originY);
 		sprite.setScale(scaleX, scaleY);
 		sprite.setRotation(angle);
 		sprite.setPosition(x, y);
 		sprite.setAlpha(alpha);
-		
+
 		sprite.draw(batch);
 	}
-	
+
 	protected void playSound(Sound sound, SpriterSound info) {
 		sound.play(info.volume, 1.0f, info.panning);
 	}
@@ -390,7 +393,8 @@ public class SpriterAnimator {
 		float x = this.spatial.x + info.x - this.pivotX;
 		float y = this.spatial.y + info.y - this.pivotY;
 		float width = objInfo.width * info.scaleX * this.spatial.scaleX;
-		float height = objInfo.height * info.scaleY * this.spatial.scaleY * -1f;	// Don't forget Y is the other way round
+		// Don't forget y-axis is the other way round.
+		float height = objInfo.height * info.scaleY * this.spatial.scaleY * -1f;
 		shapeRenderer.rect(x, y, width, height);
 	}
 
@@ -402,7 +406,7 @@ public class SpriterAnimator {
 	private SpriterFileInfo applyCharacterMap(SpriterFileInfo file) {
 		// Check values from character map
 		if (characterMaps.size > 0) {
-			for(int i = characterMaps.size - 1 ; i >= 0 ; i--) {
+			for (int i = characterMaps.size - 1; i >= 0; i--) {
 				SpriterCharacterMap characterMap = characterMaps.get(i);
 				for (SpriterMapInstruction map : characterMap.maps) {
 					if (map.file.equals(file) && map.target.folderId >= 0 && map.target.fileId >= 0)
@@ -412,5 +416,17 @@ public class SpriterAnimator {
 		}
 
 		return file;
+	}
+
+	private void preprocessObject(SpriterObject object, SpriterFileInfo info) {
+		FrameData.applyParentTransform(object, spatial);
+
+		// Pivot points may be affected by character map
+		// Sort this out as late as we can
+		if (Float.isNaN(object.pivotX) || Float.isNaN(object.pivotY)) {
+			SpriterFile file = spriterData.folders.get(info.folderId).files.get(info.fileId);
+			object.pivotX = file.pivotX;
+			object.pivotY = file.pivotY;
+		}
 	}
 }

@@ -583,11 +583,6 @@ public abstract class SpriterReader {
 			for (SpriterAnimation a : entity.animations) {
 				a.entity = entity;
 
-				// Initialize objects
-				for (SpriterTimeline t : a.timelines)
-					for (SpriterTimelineKey k : t.keys)
-						initializeObject(k.objectInfo, data.folders);
-
 				// Initialize vardefs
 				if (a.meta != null) {
 
@@ -603,17 +598,6 @@ public abstract class SpriterReader {
 
 				}
 			}
-		}
-	}
-
-	private void initializeObject(SpriterObject o, Array<SpriterFolder> folders) {
-		if (o == null)
-			return;
-		if (Float.isNaN(o.pivotX) || Float.isNaN(o.pivotY)) {
-			SpriterFileInfo info = o.file;
-			SpriterFile file = folders.get(info.folderId).files.get(info.fileId);
-			o.pivotX = file.pivotX;
-			o.pivotY = file.pivotY;
 		}
 	}
 

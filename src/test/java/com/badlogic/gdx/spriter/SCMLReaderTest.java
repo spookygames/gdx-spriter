@@ -13,8 +13,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.badlogic.gdx.spriter.data.SpriterData;
-import com.badlogic.gdx.spriter.data.SpriterFile;
-import com.badlogic.gdx.spriter.data.SpriterObject;
 import com.badlogic.gdx.spriter.reader.SCMLReader;
 
 public class SCMLReaderTest {
@@ -33,20 +31,6 @@ public class SCMLReaderTest {
 
 			Assert.assertNotNull(stuff);
 		}
-	}
-
-	@Test
-	public void cleanData() {
-		SpriterData data = SpriterTestData.data1;
-
-		SCMLReader reader = new SCMLReader();
-
-		reader.initializeData(data);
-
-		SpriterObject object = data.entities.first().animations.first().timelines.first().keys.first().objectInfo;
-		SpriterFile file = data.folders.get(object.file.folderId).files.get(object.file.fileId);
-		Assert.assertEquals(file.pivotX, object.pivotX, 0.01d);
-		Assert.assertEquals(file.pivotY, object.pivotY, 0.01d);
 	}
 
 	@Test

@@ -311,8 +311,8 @@ public class SpriterTestData {
 		object.x = -5f;
 		object.y = 8f;
 		object.angle = 0f;
-		object.pivotX = 0.463158f;
-		object.pivotY = 0.132075f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -336,8 +336,8 @@ public class SpriterTestData {
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -356,8 +356,8 @@ public class SpriterTestData {
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -377,8 +377,8 @@ public class SpriterTestData {
 		object.y = 45f;
 		object.angle = 0f;
 		object.scaleX = 0.205128f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -397,8 +397,8 @@ public class SpriterTestData {
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -417,8 +417,8 @@ public class SpriterTestData {
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -438,8 +438,8 @@ public class SpriterTestData {
 		object.y = 45f;
 		object.angle = 0f;
 		object.scaleX = 0.102564f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
@@ -458,8 +458,8 @@ public class SpriterTestData {
 		object.x = -1f;
 		object.y = 45f;
 		object.angle = 0f;
-		object.pivotX = 0.486486f;
-		object.pivotY = 0.521739f;
+		object.pivotX = Float.NaN;
+		object.pivotY = Float.NaN;
 
 		timelineKey.objectInfo = object;
 
