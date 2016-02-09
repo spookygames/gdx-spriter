@@ -23,6 +23,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -79,7 +80,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	Label spriterPlaceholder;
 	SpriterAnimatorActor spriterAnimator;
 
-	TextButton playPauseButton;
+	Button playPauseButton;
 	Slider timeSlider;
 	ChangeListener timeSliderListener;
 	Label timeLabel;
@@ -134,7 +135,8 @@ public class SpriterDemoApp implements ApplicationListener {
 		});
 
 		Button fileFinder = new TextButton("Browse", skin);
-		// TODO Add event handler
+		// TODO Add event handler then remove next line
+		fileFinder.setDisabled(true);
 
 		entityChooser = new SelectBox<SpriterAnimator>(skin);
 		entityChooser.setName("Entities");
@@ -278,13 +280,12 @@ public class SpriterDemoApp implements ApplicationListener {
 		spriterAnimator = new SpriterAnimatorActor(animator);
 		spriterAnimator.debug();
 
-		playPauseButton = new CheckBox("Play", skin);
+		playPauseButton = new ImageButton(skin, "play");
 		playPauseButton.setChecked(true);
 		playPauseButton.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
 				boolean playing = playPauseButton.isChecked();
-				playPauseButton.setText(playing ? "Play" : "Pause");
 				spriterAnimator.setDisabled(!playing);
 			}
 		});
@@ -313,14 +314,14 @@ public class SpriterDemoApp implements ApplicationListener {
 		selectionTable.defaults().pad(3f);
 
 		Table filesTable = new Table(skin);
-		filesTable.row().pad(3f);
-		filesTable.add(fileChooser).expand().fill();
-		filesTable.add(fileFinder);
+		filesTable.row();
+		filesTable.add(fileChooser).expand().fillX();
+		filesTable.add(fileFinder).padLeft(2f).padRight(1f);
 
 		Table animationsTable = new Table(skin);
 		animationsTable.row();
 		animationsTable.add(animationChooser).expand().fill();
-		animationsTable.add(transitionCheckbox).fillX();
+		animationsTable.add(transitionCheckbox).fillX().padLeft(2f);
 
 		Table menuTable = new Table(skin);
 		menuTable.defaults().pad(3f).expandX().fillX();
@@ -328,16 +329,16 @@ public class SpriterDemoApp implements ApplicationListener {
 		menuTable.add(titleTable).colspan(2);
 		menuTable.row();
 		menuTable.add("File");
-		menuTable.add(filesTable);
+		menuTable.add(filesTable).pad(4f);
 		menuTable.row();
 		menuTable.add("Entity");
-		menuTable.add(entityChooser);
+		menuTable.add(entityChooser).pad(4f);
 		menuTable.row();
 		menuTable.add("Animation");
-		menuTable.add(animationsTable);
+		menuTable.add(animationsTable).pad(4f);
 		menuTable.row();
 		menuTable.add("Maps");
-		menuTable.add(charmapChooser);
+		menuTable.add(charmapChooser).pad(4f);
 		menuTable.row();
 		menuTable.add("Position X");
 		menuTable.add(positionXSlider);
@@ -724,7 +725,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			valueLabel = new Label("", skin);
 
 			this.add(slider).expandX().fill();
-			this.add(valueLabel).minWidth(30f);
+			this.add(valueLabel).minWidth(30f).padLeft(3f);
 		}
 
 		public float getValue() {
