@@ -5,14 +5,19 @@
 
 package com.badlogic.gdx.spriter.demo;
 
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.files.FileHandle;
 
-class PrettyDisplayFileHandle extends FileHandle {
+class SpriterDemoFileHandle extends FileHandle {
 
+	final AssetManager manager;
+	
 	private String displayString;
 
-	public PrettyDisplayFileHandle(FileHandle handle) {
+	public SpriterDemoFileHandle(FileHandle handle, AssetManager manager) {
 		super(handle.file());
+		
+		this.manager = manager;
 
 		String[] parts = path().split("/");
 		int count = parts.length;

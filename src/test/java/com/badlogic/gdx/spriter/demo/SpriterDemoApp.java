@@ -5,6 +5,8 @@
 
 package com.badlogic.gdx.spriter.demo;
 
+import java.awt.FileDialog;
+
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
@@ -13,6 +15,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.assets.AssetDescriptor;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
+import com.badlogic.gdx.assets.loaders.resolvers.AbsoluteFileHandleResolver;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
@@ -60,7 +63,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	Stage stage;
 	public Table rootTable;
 
-	SelectBox<FileHandle> fileChooser;
+	SelectBox<SpriterDemoFileHandle> fileChooser;
 	SelectBox<SpriterAnimator> entityChooser;
 	SelectBox<String> animationChooser;
 	SelectBox<SpriterCharacterMap> charmapChooser;
@@ -87,7 +90,8 @@ public class SpriterDemoApp implements ApplicationListener {
 
 	// Data
 	AssetManager assetManager;
-	Array<FileHandle> files = new Array<FileHandle>();
+	AssetManager externalAssetManager;
+	Array<SpriterDemoFileHandle> files = new Array<SpriterDemoFileHandle>();
 	Array<SpriterAnimator> animators = new Array<SpriterAnimator>();
 
 	// Current data
@@ -95,6 +99,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	SpriterAnimator animator = null;
 	boolean transition = false;
 	SelectBox<?> lastUsedSelectBox = null;
+	String lastFolderBrowsed = System.getProperty("user.home");
 
 	@Override
 	public void create() {
@@ -105,6 +110,10 @@ public class SpriterDemoApp implements ApplicationListener {
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		assetManager = new AssetManager(resolver);
 		assetManager.setLoader(SpriterData.class, new SpriterDataLoader(resolver));
+		
+		resolver = new AbsoluteFileHandleResolver();
+		externalAssetManager = new AssetManager(resolver);
+		externalAssetManager.setLoader(SpriterData.class, new SpriterDataLoader(resolver));
 
 		assetManager.load("uiskin.json", Skin.class);
 		assetManager.finishLoading();
@@ -124,7 +133,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 		};
 
-		fileChooser = new SelectBox<FileHandle>(skin);
+		fileChooser = new SelectBox<SpriterDemoFileHandle>(skin);
 		fileChooser.setName("Files");
 		fileChooser.addListener(new ChangeListener() {
 			@Override
@@ -135,8 +144,26 @@ public class SpriterDemoApp implements ApplicationListener {
 		});
 
 		Button fileFinder = new TextButton("Browse", skin);
-		// TODO Add event handler then remove next line
-		fileFinder.setDisabled(true);
+		fileFinder.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				FileDialog fileDialog = new FileDialog((java.awt.Frame)null, "Choose Spriter file", FileDialog.LOAD);
+				fileDialog.setDirectory(lastFolderBrowsed);
+				fileDialog.setResizable(true);
+				fileDialog.setVisible(true);
+				String file = fileDialog.getFile();
+				String directory = fileDialog.getDirectory();
+				if (directory != null) {
+					lastFolderBrowsed = directory;
+				}
+				if (file != null) {
+				    String path = directory + file;
+				    addFile(Gdx.files.absolute(path), externalAssetManager);
+					fileChooser.setItems(files);
+					fileChooser.setSelectedIndex(fileChooser.getItems().size - 1);
+				}
+			}
+		});
 
 		entityChooser = new SelectBox<SpriterAnimator>(skin);
 		entityChooser.setName("Entities");
@@ -475,13 +502,12 @@ public class SpriterDemoApp implements ApplicationListener {
 		testResources.addAll(SpriterTestData.scon);
 		testResources.sort();
 		for(String path : testResources)
-			files.add(new PrettyDisplayFileHandle(Gdx.files.internal(path.replaceFirst("/", ""))));
+			addFile(Gdx.files.internal(path.replaceFirst("/", "")), assetManager);
 
 		// Also go discover some unknown exotic resources! (won't work in jar though)
 		Array<FileHandle> spriterFiles = SpriterDemoUtils.findFiles(new String[] { "scml", "scon" });
 		for (FileHandle f : spriterFiles)
-			if (!files.contains(f, false))
-				files.add(new PrettyDisplayFileHandle(f));
+			addFile(f, assetManager);
 
 		fileChooser.setItems(files);
 
@@ -490,20 +516,28 @@ public class SpriterDemoApp implements ApplicationListener {
 		if(playPauseButton.isChecked())
 			animator.play(animator.getAnimations().iterator().next());
 	}
+	
+	private void addFile(FileHandle file, AssetManager manager) {
+		SpriterDemoFileHandle f = new SpriterDemoFileHandle(file, manager);
+		if (!files.contains(f, false))
+			files.add(f);
+	}
 
-	private void changeSpriterFile(FileHandle file) {
+	private void changeSpriterFile(SpriterDemoFileHandle file) {
 
+		AssetManager manager = file.manager;
+		
 		AssetDescriptor<SpriterData> desc = new AssetDescriptor<SpriterData>(file, SpriterData.class);
-		assetManager.load(desc);
 
 		try {
-			assetManager.finishLoading();
+			manager.load(desc);
+			manager.finishLoading();
 		} catch (GdxRuntimeException ex) {
 			popup("Loading error", ex.getLocalizedMessage());
 			return;
 		}
 
-		SpriterData data = assetManager.get(desc);
+		SpriterData data = manager.get(desc);
 
 		animators.clear();
 
