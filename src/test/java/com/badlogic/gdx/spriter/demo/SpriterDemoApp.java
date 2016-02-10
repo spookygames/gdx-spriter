@@ -28,6 +28,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
@@ -35,6 +36,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
+import com.badlogic.gdx.scenes.scene2d.utils.ArraySelection;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameMetadata;
 import com.badlogic.gdx.spriter.SpriterAnimationListener;
@@ -66,7 +68,7 @@ public class SpriterDemoApp implements ApplicationListener {
 	SelectBox<SpriterDemoFileHandle> fileChooser;
 	SelectBox<SpriterAnimator> entityChooser;
 	SelectBox<String> animationChooser;
-	SelectBox<SpriterCharacterMap> charmapChooser;
+	List<SpriterCharacterMap> charmapChooser;
 
 	SpriterDemoAnimatorSlider positionXSlider;
 	SpriterDemoAnimatorSlider positionYSlider;
@@ -194,13 +196,17 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 		});
 
-		charmapChooser = new SelectBox<SpriterCharacterMap>(skin);
+		charmapChooser = new List<SpriterCharacterMap>(skin);
+		ArraySelection<SpriterCharacterMap> selection = charmapChooser.getSelection();
+		selection.setMultiple(true);
+		selection.setRangeSelect(false);
+		selection.setToggle(false);
+		selection.setRequired(false);
 		charmapChooser.setName("Charmaps");
 		charmapChooser.addListener(new ChangeListener() {
 			@Override
 			public void changed(ChangeEvent event, Actor actor) {
-				changeCharacterMap(charmapChooser.getSelected());
-				lastUsedSelectBox = charmapChooser;
+				changeCharacterMaps(charmapChooser.getSelection().items().orderedItems());
 			}
 		});
 
@@ -606,12 +612,11 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		Array<SpriterCharacterMap> characterMaps = animator.getEntity().characterMaps;
 		if (characterMaps.size > 0) {
-			charmapChooser.setDisabled(false);
+			charmapChooser.setVisible(true);
 			charmapChooser.setItems((SpriterCharacterMap[]) characterMaps.toArray(SpriterCharacterMap.class));
-			charmapChooser.setSelectedIndex(0);
 		} else {
 			charmapChooser.setItems(new SpriterCharacterMap[0]);
-			charmapChooser.setDisabled(true);
+			charmapChooser.setVisible(false);
 		}
 
 		for(SpriterDemoAnimatorSlider slider : allAnimatorSliders)
@@ -635,9 +640,16 @@ public class SpriterDemoApp implements ApplicationListener {
 		timeSlider.setRange(0f, animator.getLength());
 	}
 
-	private void changeCharacterMap(SpriterCharacterMap characterMap) {
-		animator.clearCharacterMaps();
-		animator.addCharacterMap(characterMap);
+	private void changeCharacterMaps(Array<SpriterCharacterMap> selected) {
+		Array<SpriterCharacterMap> current = animator.getCharacterMaps();
+		
+		for(SpriterCharacterMap currentMap : current)
+			if(!selected.contains(currentMap, true))
+				animator.removeCharacterMap(currentMap);
+
+		for(SpriterCharacterMap selectedMap : selected)
+			if(!current.contains(selectedMap, true))
+				animator.addCharacterMap(selectedMap);
 	}
 
 	@Override
