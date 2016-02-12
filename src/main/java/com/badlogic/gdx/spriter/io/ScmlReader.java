@@ -3,7 +3,7 @@
 //This software may be modified and distributed under the terms
 //of the zlib license.  See the LICENSE file for details.
 
-package com.badlogic.gdx.spriter.reader;
+package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -12,7 +12,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
 
-public class SCMLReader extends SpriterReader {
+public class ScmlReader extends SpriterReader {
 
 	@Override
 	public String getExtension() {
@@ -20,15 +20,15 @@ public class SCMLReader extends SpriterReader {
 	}
 
 	@Override
-	public ReaderElement parse(Reader reader) throws IOException {
-		return new XmlElement(new XmlReader().parse(reader));
+	public ReaderBean parse(Reader reader) throws IOException {
+		return new XmlReaderBean(new XmlReader().parse(reader));
 	}
 
-	private static class XmlElement implements ReaderElement {
+	private static class XmlReaderBean implements ReaderBean {
 
 		private final Element xml;
 
-		public XmlElement(Element xml) {
+		public XmlReaderBean(Element xml) {
 			this.xml = xml;
 		}
 
@@ -43,20 +43,20 @@ public class SCMLReader extends SpriterReader {
 		}
 
 		@Override
-		public Array<ReaderElement> getChildren() {
+		public Array<ReaderBean> getChildren() {
 			return getChildrenByName("i");
 		}
 
 		@Override
-		public Array<ReaderElement> getChildrenByName(String name) {
-			Array<ReaderElement> elements = new Array<ReaderElement>();
+		public Array<ReaderBean> getChildrenByName(String name) {
+			Array<ReaderBean> elements = new Array<ReaderBean>();
 			for (Element xmlElement : xml.getChildrenByName(name))
 				elements.add(buildSubElement(xmlElement));
 			return elements;
 		}
 
 		@Override
-		public ReaderElement getChildByName(String name) {
+		public ReaderBean getChildByName(String name) {
 			return buildSubElement(xml.getChildByName(name));
 		}
 
@@ -75,8 +75,8 @@ public class SCMLReader extends SpriterReader {
 			return xml.getBoolean(name, defaultValue);
 		}
 
-		private XmlElement buildSubElement(Element xml) {
-			return xml == null ? null : new XmlElement(xml);
+		private XmlReaderBean buildSubElement(Element xml) {
+			return xml == null ? null : new XmlReaderBean(xml);
 		}
 	}
 }

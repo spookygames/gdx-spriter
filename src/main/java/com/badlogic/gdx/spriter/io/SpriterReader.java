@@ -3,7 +3,7 @@
 // This software may be modified and distributed under the terms
 // of the zlib license.  See the LICENSE file for details.
 
-package com.badlogic.gdx.spriter.reader;
+package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,16 +51,16 @@ import com.badlogic.gdx.utils.Array;
 
 public abstract class SpriterReader {
 
-	static interface ReaderElement {
+	static interface ReaderBean {
 		String get(String name);
 
 		String get(String name, String defaultValue);
 
-		Array<ReaderElement> getChildren();
+		Array<ReaderBean> getChildren();
 
-		Array<ReaderElement> getChildrenByName(String name);
+		Array<ReaderBean> getChildrenByName(String name);
 
-		ReaderElement getChildByName(String name);
+		ReaderBean getChildByName(String name);
 
 		int getInt(String name, int defaultValue);
 
@@ -69,8 +69,8 @@ public abstract class SpriterReader {
 		boolean getBoolean(String name, boolean defaultValue);
 	}
 
-	public SpriterData load(String xml) throws IOException {
-		return load(new StringReader(xml));
+	public SpriterData load(String content) throws IOException {
+		return load(new StringReader(content));
 	}
 
 	public SpriterData load(FileHandle file) throws IOException {
@@ -93,24 +93,24 @@ public abstract class SpriterReader {
 		return data;
 	}
 
-	public abstract ReaderElement parse(Reader reader) throws IOException;
+	public abstract ReaderBean parse(Reader reader) throws IOException;
 
 	public abstract String getExtension();
 
-	private void loadData(SpriterData data, ReaderElement root) {
+	private void loadData(SpriterData data, ReaderBean root) {
 		data.version = root.get(getExtension().toLowerCase() + "_version", data.version);
 		data.generator = root.get("generator", data.generator);
 		data.generatorVersion = root.get("generator_version", data.generatorVersion);
 		loadFolders(data, root.getChildrenByName("folder"));
 		loadEntities(data, root.getChildrenByName("entity"));
 
-		ReaderElement tagList = root.getChildByName("tag_list");
+		ReaderBean tagList = root.getChildByName("tag_list");
 		if (tagList != null)
 			loadElements(data, tagList.getChildren());
 	}
 
-	private void loadElements(SpriterData data, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadElements(SpriterData data, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterElement element = new SpriterElement();
 
 			loadElement(element, e);
@@ -119,8 +119,8 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadFolders(SpriterData data, Array<ReaderElement> folders) {
-		for (ReaderElement repo : folders) {
+	private void loadFolders(SpriterData data, Array<ReaderBean> folders) {
+		for (ReaderBean repo : folders) {
 			SpriterFolder folder = new SpriterFolder();
 
 			loadFolder(folder, repo);
@@ -129,18 +129,18 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadFolder(SpriterFolder folder, ReaderElement repo) {
+	private void loadFolder(SpriterFolder folder, ReaderBean repo) {
 		loadElement(folder, repo);
 		loadFiles(folder, repo.getChildrenByName("file"));
 	}
 
-	private void loadElement(SpriterElement element, ReaderElement xmlElement) {
+	private void loadElement(SpriterElement element, ReaderBean xmlElement) {
 		element.id = xmlElement.getInt("id", element.id);
 		element.name = xmlElement.get("name", element.name);
 	}
 
-	private void loadFiles(SpriterFolder folder, Array<ReaderElement> files) {
-		for (ReaderElement f : files) {
+	private void loadFiles(SpriterFolder folder, Array<ReaderBean> files) {
+		for (ReaderBean f : files) {
 			SpriterFile file = new SpriterFile();
 
 			loadFile(file, f);
@@ -149,7 +149,7 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadFile(SpriterFile file, ReaderElement f) {
+	private void loadFile(SpriterFile file, ReaderBean f) {
 		loadElement(file, f);
 		file.type = SpriterFileType.parse(f.get("type", file.type.toString().toLowerCase()));
 		file.width = f.getInt("width", file.width);
@@ -158,8 +158,8 @@ public abstract class SpriterReader {
 		file.pivotY = f.getFloat("pivot_y", file.pivotY);
 	}
 
-	private void loadEntities(SpriterData data, Array<ReaderElement> entities) {
-		for (ReaderElement e : entities) {
+	private void loadEntities(SpriterData data, Array<ReaderBean> entities) {
+		for (ReaderBean e : entities) {
 			SpriterEntity entity = new SpriterEntity();
 
 			loadEntity(entity, e);
@@ -168,19 +168,19 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadEntity(SpriterEntity entity, ReaderElement e) {
+	private void loadEntity(SpriterEntity entity, ReaderBean e) {
 		loadElement(entity, e);
 		loadObjectInfos(entity, e.getChildrenByName("obj_info"));
 		loadCharacterMaps(entity, e.getChildrenByName("character_map"));
 		loadAnimations(entity, e.getChildrenByName("animation"));
 
-		ReaderElement varDefs = e.getChildByName("var_defs");
+		ReaderBean varDefs = e.getChildByName("var_defs");
 		if (varDefs != null)
 			loadVariables(entity, varDefs.getChildren());
 	}
 
-	private void loadVariables(SpriterVariableContainer container, Array<ReaderElement> elements) {
-		for (ReaderElement i : elements) {
+	private void loadVariables(SpriterVariableContainer container, Array<ReaderBean> elements) {
+		for (ReaderBean i : elements) {
 			SpriterVarDef var = new SpriterVarDef();
 
 			loadVarDef(var, i);
@@ -189,14 +189,14 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadVarDef(SpriterVarDef var, ReaderElement i) {
+	private void loadVarDef(SpriterVarDef var, ReaderBean i) {
 		loadElement(var, i);
 		var.type = SpriterVarType.parse(i.get("type", var.type.toString().toLowerCase()));
 		var.defaultValue = i.get("default", var.defaultValue);
 	}
 
-	private void loadObjectInfos(SpriterEntity entity, Array<ReaderElement> infos) {
-		for (ReaderElement info : infos) {
+	private void loadObjectInfos(SpriterEntity entity, Array<ReaderBean> infos) {
+		for (ReaderBean info : infos) {
 			SpriterObjectInfo objInfo = new SpriterObjectInfo();
 
 			loadObjectInfo(objInfo, info);
@@ -205,22 +205,37 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadObjectInfo(SpriterObjectInfo objInfo, ReaderElement info) {
+	private void loadObjectInfo(SpriterObjectInfo objInfo, ReaderBean info) {
 		loadElement(objInfo, info);
 
+		objInfo.realName = info.get("realname", objInfo.realName);
 		objInfo.objectType = SpriterObjectType.parse(info.get("type", objInfo.objectType.toString().toLowerCase()));
 		objInfo.width = info.getFloat("w", objInfo.width);
 		objInfo.height = info.getFloat("h", objInfo.height);
 		objInfo.pivotX = info.getFloat("pivot_x", objInfo.pivotX);
 		objInfo.pivotY = info.getFloat("pivot_y", objInfo.pivotY);
 
-		ReaderElement varDefs = info.getChildByName("var_defs");
+		ReaderBean frames = info.getChildByName("frames");
+		if (frames != null)
+			loadFrames(objInfo, frames.getChildren());
+
+		ReaderBean varDefs = info.getChildByName("var_defs");
 		if (varDefs != null)
 			loadVariables(objInfo, varDefs.getChildren());
 	}
 
-	private void loadCharacterMaps(SpriterEntity entity, Array<ReaderElement> charMaps) {
-		for (ReaderElement map : charMaps) {
+	private void loadFrames(SpriterObjectInfo objInfo, Array<ReaderBean> charMaps) {
+		for (ReaderBean f : charMaps) {
+			SpriterFileInfo frame = new SpriterFileInfo();
+
+			loadFileInfo(frame, f);
+
+			objInfo.frames.add(frame);
+		}
+	}
+
+	private void loadCharacterMaps(SpriterEntity entity, Array<ReaderBean> charMaps) {
+		for (ReaderBean map : charMaps) {
 			SpriterCharacterMap charMap = new SpriterCharacterMap();
 
 			loadCharacterMap(charMap, map);
@@ -229,13 +244,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadCharacterMap(SpriterCharacterMap charMap, ReaderElement map) {
+	private void loadCharacterMap(SpriterCharacterMap charMap, ReaderBean map) {
 		loadElement(charMap, map);
 		loadCharacterMapInstructions(charMap, map.getChildrenByName("map"));
 	}
 
-	private void loadCharacterMapInstructions(SpriterCharacterMap charMap, Array<ReaderElement> maps) {
-		for (ReaderElement mapping : maps) {
+	private void loadCharacterMapInstructions(SpriterCharacterMap charMap, Array<ReaderBean> maps) {
+		for (ReaderBean mapping : maps) {
 			SpriterMapInstruction instruction = new SpriterMapInstruction();
 
 			loadMapInstruction(instruction, mapping);
@@ -244,7 +259,7 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadMapInstruction(SpriterMapInstruction instruction, ReaderElement mapping) {
+	private void loadMapInstruction(SpriterMapInstruction instruction, ReaderBean mapping) {
 		SpriterFileInfo source = new SpriterFileInfo();
 		loadFileInfo(source, mapping);
 		instruction.file = source;
@@ -255,13 +270,13 @@ public abstract class SpriterReader {
 		instruction.target = target;
 	}
 
-	private void loadFileInfo(SpriterFileInfo file, ReaderElement element) {
+	private void loadFileInfo(SpriterFileInfo file, ReaderBean element) {
 		file.folderId = element.getInt("folder", file.folderId);
 		file.fileId = element.getInt("file", file.fileId);
 	}
 
-	private void loadAnimations(SpriterEntity entity, Array<ReaderElement> animations) {
-		for (ReaderElement a : animations) {
+	private void loadAnimations(SpriterEntity entity, Array<ReaderBean> animations) {
+		for (ReaderBean a : animations) {
 			SpriterAnimation animation = new SpriterAnimation();
 
 			loadAnimation(animation, a);
@@ -270,20 +285,21 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadAnimation(SpriterAnimation animation, ReaderElement a) {
+	private void loadAnimation(SpriterAnimation animation, ReaderBean a) {
 		loadElement(animation, a);
 		animation.length = a.getFloat("length", animation.length);
 		animation.looping = a.getBoolean("looping", animation.looping);
+		animation.interval = a.getFloat("interval", animation.interval);
 
 		SpriterMainline main = new SpriterMainline();
 		loadMainline(main, a.getChildByName("mainline"));
 		animation.mainline = main;
 
-		loadTimelines(animation, animation.entity, a.getChildrenByName("timeline"));
+		loadTimelines(animation, a.getChildrenByName("timeline"));
 		loadEventlines(animation, a.getChildrenByName("eventline"));
 		loadSoundlines(animation, a.getChildrenByName("soundline"));
 
-		ReaderElement xmlMeta = a.getChildByName("meta");
+		ReaderBean xmlMeta = a.getChildByName("meta");
 		if (xmlMeta != null) {
 			SpriterMeta meta = new SpriterMeta();
 			loadMeta(meta, xmlMeta);
@@ -291,12 +307,12 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadMainline(SpriterMainline main, ReaderElement mainline) {
+	private void loadMainline(SpriterMainline main, ReaderBean mainline) {
 		loadMainlineKeys(main, mainline.getChildrenByName("key"));
 	}
 
-	private void loadMainlineKeys(SpriterMainline main, Array<ReaderElement> keys) {
-		for (ReaderElement k : keys) {
+	private void loadMainlineKeys(SpriterMainline main, Array<ReaderBean> keys) {
+		for (ReaderBean k : keys) {
 			SpriterMainlineKey key = new SpriterMainlineKey();
 
 			loadMainlineKey(key, k);
@@ -305,13 +321,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadMainlineKey(SpriterMainlineKey key, ReaderElement k) {
+	private void loadMainlineKey(SpriterMainlineKey key, ReaderBean k) {
 		loadKey(key, k);
 		loadBoneRefs(key, k.getChildrenByName("bone_ref"));
 		loadObjectRefs(key, k.getChildrenByName("object_ref"));
 	}
 
-	private void loadKey(SpriterKey key, ReaderElement k) {
+	private void loadKey(SpriterKey key, ReaderBean k) {
 		loadElement(key, k);
 		key.time = k.getFloat("time", key.time);
 		key.curveType = SpriterCurveType.parse(k.get("curve_type", key.curveType.toString().toLowerCase()));
@@ -321,8 +337,8 @@ public abstract class SpriterReader {
 		key.c4 = k.getFloat("c4", key.c4);
 	}
 
-	private void loadBoneRefs(SpriterMainlineKey key, Array<ReaderElement> boneRefs) {
-		for (ReaderElement e : boneRefs) {
+	private void loadBoneRefs(SpriterMainlineKey key, Array<ReaderBean> boneRefs) {
+		for (ReaderBean e : boneRefs) {
 			SpriterRef boneRef = new SpriterRef();
 
 			loadRef(boneRef, e);
@@ -331,15 +347,15 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadRef(SpriterRef boneRef, ReaderElement e) {
+	private void loadRef(SpriterRef boneRef, ReaderBean e) {
 		loadElement(boneRef, e);
 		boneRef.timelineId = e.getInt("timeline", boneRef.timelineId);
 		boneRef.keyId = e.getInt("key", boneRef.keyId);
 		boneRef.parentId = e.getInt("parent", boneRef.parentId);
 	}
 
-	private void loadObjectRefs(SpriterMainlineKey key, Array<ReaderElement> objectRefs) {
-		for (ReaderElement o : objectRefs) {
+	private void loadObjectRefs(SpriterMainlineKey key, Array<ReaderBean> objectRefs) {
+		for (ReaderBean o : objectRefs) {
 			SpriterObjectRef objectRef = new SpriterObjectRef();
 
 			loadObjectRef(objectRef, o);
@@ -349,13 +365,13 @@ public abstract class SpriterReader {
 		key.objectRefs.sort();
 	}
 
-	private void loadObjectRef(SpriterObjectRef objectRef, ReaderElement o) {
+	private void loadObjectRef(SpriterObjectRef objectRef, ReaderBean o) {
 		loadRef(objectRef, o);
 		objectRef.zIndex = o.getInt("z_index", objectRef.zIndex);
 	}
 
-	private void loadTimelines(SpriterAnimation animation, SpriterEntity entity, Array<ReaderElement> timelines) {
-		for (ReaderElement t : timelines) {
+	private void loadTimelines(SpriterAnimation animation, Array<ReaderBean> timelines) {
+		for (ReaderBean t : timelines) {
 			SpriterTimeline timeline = new SpriterTimeline();
 
 			loadTimeline(timeline, t);
@@ -364,13 +380,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadTimeline(SpriterTimeline timeline, ReaderElement t) {
+	private void loadTimeline(SpriterTimeline timeline, ReaderBean t) {
 		loadElement(timeline, t);
 		timeline.objectType = SpriterObjectType.parse(t.get("object_type", timeline.objectType.toString().toLowerCase()));
 		timeline.objectId = t.getInt("obj", timeline.objectId);
 		loadTimelineKeys(timeline, t.getChildrenByName("key"));
 
-		ReaderElement xmlMeta = t.getChildByName("meta");
+		ReaderBean xmlMeta = t.getChildByName("meta");
 		if (xmlMeta != null) {
 			SpriterMeta meta = new SpriterMeta();
 			loadMeta(meta, xmlMeta);
@@ -378,8 +394,8 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadTimelineKeys(SpriterTimeline timeline, Array<ReaderElement> keys) {
-		for (ReaderElement k : keys) {
+	private void loadTimelineKeys(SpriterTimeline timeline, Array<ReaderBean> keys) {
+		for (ReaderBean k : keys) {
 			SpriterTimelineKey key = new SpriterTimelineKey();
 
 			loadTimelineKey(key, k);
@@ -388,12 +404,12 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadTimelineKey(SpriterTimelineKey key, ReaderElement k) {
+	private void loadTimelineKey(SpriterTimelineKey key, ReaderBean k) {
 		loadKey(key, k);
 
 		key.spin = k.getInt("spin", key.spin);
 
-		ReaderElement obj = k.getChildByName("bone");
+		ReaderBean obj = k.getChildByName("bone");
 		if (obj != null) {
 			SpriterSpatial boneInfo = new SpriterSpatial();
 
@@ -412,7 +428,7 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadSpatial(SpriterSpatial spatial, ReaderElement obj) {
+	private void loadSpatial(SpriterSpatial spatial, ReaderBean obj) {
 		spatial.x = obj.getFloat("x", spatial.x);
 		spatial.y = obj.getFloat("y", spatial.y);
 		spatial.scaleX = obj.getFloat("scale_x", spatial.scaleX);
@@ -421,7 +437,7 @@ public abstract class SpriterReader {
 		spatial.alpha = obj.getFloat("a", spatial.alpha);
 	}
 
-	private void loadObject(SpriterObject objectInfo, ReaderElement element) {
+	private void loadObject(SpriterObject objectInfo, ReaderBean element) {
 		loadSpatial(objectInfo, element);
 		objectInfo.animationId = element.getInt("animation", objectInfo.animationId);
 		objectInfo.pivotX = element.getFloat("pivot_x", objectInfo.pivotX);
@@ -434,8 +450,8 @@ public abstract class SpriterReader {
 		objectInfo.file = file;
 	}
 
-	private void loadEventlines(SpriterAnimation animation, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadEventlines(SpriterAnimation animation, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterEventline eventline = new SpriterEventline();
 
 			loadEventline(eventline, e);
@@ -444,13 +460,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadEventline(SpriterEventline eventline, ReaderElement e) {
+	private void loadEventline(SpriterEventline eventline, ReaderBean e) {
 		loadElement(eventline, e);
 		loadKeys(eventline, e.getChildrenByName("key"));
 	}
 
-	private void loadKeys(SpriterEventline eventline, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadKeys(SpriterEventline eventline, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterKey key = new SpriterKey();
 
 			loadKey(key, e);
@@ -459,8 +475,8 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadSoundlines(SpriterAnimation animation, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadSoundlines(SpriterAnimation animation, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterSoundline soundline = new SpriterSoundline();
 
 			loadSoundline(soundline, e);
@@ -469,13 +485,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadSoundline(SpriterSoundline soundline, ReaderElement e) {
+	private void loadSoundline(SpriterSoundline soundline, ReaderBean e) {
 		loadElement(soundline, e);
 		loadSoundlineKeys(soundline, e.getChildrenByName("key"));
 	}
 
-	private void loadSoundlineKeys(SpriterSoundline soundline, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadSoundlineKeys(SpriterSoundline soundline, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterSoundlineKey key = new SpriterSoundlineKey();
 
 			loadSoundlineKey(key, e);
@@ -484,14 +500,14 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadSoundlineKey(SpriterSoundlineKey key, ReaderElement e) {
+	private void loadSoundlineKey(SpriterSoundlineKey key, ReaderBean e) {
 		loadKey(key, e);
 		SpriterSound sound = new SpriterSound();
 		loadSound(sound, e.getChildByName("object"));
 		key.soundObject = sound;
 	}
 
-	private void loadSound(SpriterSound sound, ReaderElement element) {
+	private void loadSound(SpriterSound sound, ReaderBean element) {
 		loadElement(sound, element);
 		sound.trigger = element.getBoolean("trigger", sound.trigger);
 		sound.panning = element.getFloat("panning", sound.panning);
@@ -502,18 +518,19 @@ public abstract class SpriterReader {
 		sound.file = file;
 	}
 
-	private void loadMeta(SpriterMeta meta, ReaderElement element) {
+	private void loadMeta(SpriterMeta meta, ReaderBean element) {
 		loadVarlines(meta, element.getChildrenByName("varline"));
 
-		ReaderElement xmlTagline = element.getChildByName("tagline");
+		ReaderBean xmlTagline = element.getChildByName("tagline");
 		if (xmlTagline != null) {
 			SpriterTagline tagline = new SpriterTagline();
 			loadTagline(tagline, xmlTagline);
+			meta.tagline = tagline;
 		}
 	}
 
-	private void loadVarlines(SpriterMeta meta, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadVarlines(SpriterMeta meta, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterVarline varline = new SpriterVarline();
 
 			loadVarline(varline, e);
@@ -522,14 +539,14 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadVarline(SpriterVarline varline, ReaderElement e) {
+	private void loadVarline(SpriterVarline varline, ReaderBean e) {
 		loadElement(varline, e);
 		varline.def = e.getInt("def", varline.def);
 		loadVarlineKeys(varline, e.getChildrenByName("key"));
 	}
 
-	private void loadVarlineKeys(SpriterVarline varline, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadVarlineKeys(SpriterVarline varline, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterVarlineKey key = new SpriterVarlineKey();
 
 			loadVarlineKey(key, e);
@@ -538,17 +555,17 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadVarlineKey(SpriterVarlineKey key, ReaderElement e) {
+	private void loadVarlineKey(SpriterVarlineKey key, ReaderBean e) {
 		loadKey(key, e);
 		key.value = e.get("val", key.value);
 	}
 
-	private void loadTagline(SpriterTagline tagline, ReaderElement e) {
+	private void loadTagline(SpriterTagline tagline, ReaderBean e) {
 		loadTaglineKeys(tagline, e.getChildrenByName("key"));
 	}
 
-	private void loadTaglineKeys(SpriterTagline tagline, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadTaglineKeys(SpriterTagline tagline, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterTaglineKey key = new SpriterTaglineKey();
 
 			loadTaglineKey(key, e);
@@ -557,13 +574,13 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadTaglineKey(SpriterTaglineKey key, ReaderElement e) {
+	private void loadTaglineKey(SpriterTaglineKey key, ReaderBean e) {
 		loadKey(key, e);
 		loadTags(key, e.getChildrenByName("tag"));
 	}
 
-	private void loadTags(SpriterTaglineKey key, Array<ReaderElement> elements) {
-		for (ReaderElement e : elements) {
+	private void loadTags(SpriterTaglineKey key, Array<ReaderBean> elements) {
+		for (ReaderBean e : elements) {
 			SpriterTag tag = new SpriterTag();
 
 			loadTag(tag, e);
@@ -572,7 +589,7 @@ public abstract class SpriterReader {
 		}
 	}
 
-	private void loadTag(SpriterTag tag, ReaderElement i) {
+	private void loadTag(SpriterTag tag, ReaderBean i) {
 		loadElement(tag, i);
 		tag.tagId = i.getInt("t", tag.tagId);
 	}

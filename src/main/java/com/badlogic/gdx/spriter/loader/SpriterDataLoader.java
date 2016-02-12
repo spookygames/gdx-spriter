@@ -18,7 +18,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
-import com.badlogic.gdx.spriter.reader.SpriterReader;
+import com.badlogic.gdx.spriter.io.SpriterReader;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 

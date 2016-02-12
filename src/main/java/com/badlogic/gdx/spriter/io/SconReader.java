@@ -3,7 +3,7 @@
 //This software may be modified and distributed under the terms
 //of the zlib license.  See the LICENSE file for details.
 
-package com.badlogic.gdx.spriter.reader;
+package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -12,7 +12,7 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
-public class SCONReader extends SpriterReader {
+public class SconReader extends SpriterReader {
 
 	@Override
 	public String getExtension() {
@@ -20,15 +20,15 @@ public class SCONReader extends SpriterReader {
 	}
 
 	@Override
-	public ReaderElement parse(Reader reader) throws IOException {
-		return new JsonElement(new JsonReader().parse(reader));
+	public ReaderBean parse(Reader reader) throws IOException {
+		return new JsonReaderBean(new JsonReader().parse(reader));
 	}
 
-	private static class JsonElement implements ReaderElement {
+	private static class JsonReaderBean implements ReaderBean {
 
 		private final JsonValue json;
 
-		public JsonElement(JsonValue json) {
+		public JsonReaderBean(JsonValue json) {
 			this.json = json;
 		}
 
@@ -43,8 +43,8 @@ public class SCONReader extends SpriterReader {
 		}
 
 		@Override
-		public Array<ReaderElement> getChildren() {
-			Array<ReaderElement> elements = new Array<ReaderElement>();
+		public Array<ReaderBean> getChildren() {
+			Array<ReaderBean> elements = new Array<ReaderBean>();
 
 			for (JsonValue jsonElement : json)
 				elements.add(buildSubElement(jsonElement));
@@ -53,8 +53,8 @@ public class SCONReader extends SpriterReader {
 		}
 
 		@Override
-		public Array<ReaderElement> getChildrenByName(String name) {
-			Array<ReaderElement> elements = new Array<ReaderElement>();
+		public Array<ReaderBean> getChildrenByName(String name) {
+			Array<ReaderBean> elements = new Array<ReaderBean>();
 
 			JsonValue jsonCollection = json.get(name);
 			if (jsonCollection != null)
@@ -65,7 +65,7 @@ public class SCONReader extends SpriterReader {
 		}
 
 		@Override
-		public ReaderElement getChildByName(String name) {
+		public ReaderBean getChildByName(String name) {
 			return buildSubElement(json.get(name));
 		}
 
@@ -84,9 +84,9 @@ public class SCONReader extends SpriterReader {
 			return json.getBoolean(name, defaultValue);
 		}
 
-		private JsonElement buildSubElement(JsonValue json) {
-			return json == null ? null : new JsonElement(json);
+		private JsonReaderBean buildSubElement(JsonValue json) {
+			return json == null ? null : new JsonReaderBean(json);
 		}
-	}
 
+	}
 }

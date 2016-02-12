@@ -17,10 +17,11 @@ public class SpriterAnimation extends SpriterElement {
 	public Array<SpriterEventline> eventlines = new Array<SpriterEventline>();
 	public Array<SpriterSoundline> soundlines = new Array<SpriterSoundline>();
 	public SpriterMeta meta;
+	public float interval = 100;	// Looks like it has no real use
 
 	@Override
 	public String toString() {
-		return "SpriterAnimation [length=" + length + ", looping=" + looping + ", mainline=" + mainline + ", timelines=" + timelines + ", eventlines=" + eventlines + ", soundlines=" + soundlines + ", meta=" + meta + ", id=" + id + ", name=" + name + "]";
+		return "SpriterAnimation [length=" + length + ", looping=" + looping + ", mainline=" + mainline + ", timelines=" + timelines + ", eventlines=" + eventlines + ", soundlines=" + soundlines + ", meta=" + meta + ", interval=" + interval + ", id=" + id + ", name=" + name + "]";
 	}
 
 }

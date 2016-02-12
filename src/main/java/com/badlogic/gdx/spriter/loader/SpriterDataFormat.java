@@ -6,22 +6,22 @@
 package com.badlogic.gdx.spriter.loader;
 
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.spriter.reader.SCMLReader;
-import com.badlogic.gdx.spriter.reader.SCONReader;
-import com.badlogic.gdx.spriter.reader.SpriterReader;
+import com.badlogic.gdx.spriter.io.ScmlReader;
+import com.badlogic.gdx.spriter.io.SconReader;
+import com.badlogic.gdx.spriter.io.SpriterReader;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
 public enum SpriterDataFormat {
 	SCML {
 		@Override
 		SpriterReader getReader() {
-			return new SCMLReader();
+			return new ScmlReader();
 		}
 	},
 	SCON {
 		@Override
 		SpriterReader getReader() {
-			return new SCONReader();
+			return new SconReader();
 		}
 	};
 

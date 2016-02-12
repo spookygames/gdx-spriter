@@ -5,6 +5,8 @@
 
 package com.badlogic.gdx.spriter.data;
 
+import com.badlogic.gdx.utils.Array;
+
 public class SpriterObjectInfo extends SpriterVariableContainer {
 
 	public SpriterObjectType objectType = SpriterObjectType.Sprite;
@@ -12,10 +14,12 @@ public class SpriterObjectInfo extends SpriterVariableContainer {
 	public float height;
 	public float pivotX;
 	public float pivotY;
+	public String realName;	// Looks like it has no real use
+	public Array<SpriterFileInfo> frames = new Array<SpriterFileInfo>();	// Looks like it has no real use
 
 	@Override
 	public String toString() {
-		return "SpriterObjectInfo [objectType=" + objectType + ", width=" + width + ", height=" + height + ", pivotX=" + pivotX + ", pivotY=" + pivotY + ", variables=" + variables + ", id=" + id + ", name=" + name + "]";
+		return "SpriterObjectInfo [objectType=" + objectType + ", width=" + width + ", height=" + height + ", pivotX=" + pivotX + ", pivotY=" + pivotY + ", realName=" + realName + ", frames=" + frames + ", variables=" + variables + ", id=" + id + ", name=" + name + "]";
 	}
 
 }

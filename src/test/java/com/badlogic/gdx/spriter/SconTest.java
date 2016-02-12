@@ -13,18 +13,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.badlogic.gdx.spriter.data.SpriterData;
-import com.badlogic.gdx.spriter.reader.SCONReader;
+import com.badlogic.gdx.spriter.io.SconReader;
 
-public class SCONReaderTest {
+public class SconTest {
 
 	@Test
-	public void readSCON() throws IOException {
+	public void readScon() throws IOException {
 		for (String scon : SpriterTestData.scon) {
+
 			Assert.assertNotNull("SCON file missing", getClass().getResource(scon));
 
 			Reader r = new InputStreamReader(getClass().getResourceAsStream(scon));
 
-			SCONReader reader = new SCONReader();
+			SconReader reader = new SconReader();
 
 			SpriterData stuff = reader.load(r);
 
@@ -33,12 +34,12 @@ public class SCONReaderTest {
 	}
 
 	@Test
-	public void checkReadContent() throws IOException {
+	public void checkSconReadContent() throws IOException {
 		String scon = SpriterTestData.letterbotSCON;
 		SpriterData data = SpriterTestData.letterbotSCONData;
 
 		Reader r = new InputStreamReader(getClass().getResourceAsStream(scon));
-		SCONReader reader = new SCONReader();
+		SconReader reader = new SconReader();
 		SpriterData sconData = reader.load(r);
 
 		String ref = data.toString();

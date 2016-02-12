@@ -220,11 +220,10 @@
                 <i folder="3" file="21"/>
             </frames>
         </obj_info>
-        <obj_info name="Player_AttackBox" realname="AttackBox" type="box" w="202" h="57" pivot_x="0" pivot_y="0">
+        <obj_info name="Player_AttackBox" realname="AttackBox" type="box" w="202" h="57">
             <var_defs>
                 <i id="0" name="damage" type="float" default="5"/>
             </var_defs>
-            <frames/>
         </obj_info>
         <var_defs>
             <i id="0" name="Xvelocity" type="float" default="0"/>
