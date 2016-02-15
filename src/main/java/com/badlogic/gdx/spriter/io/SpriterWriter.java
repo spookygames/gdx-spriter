@@ -217,8 +217,8 @@ public abstract class SpriterWriter {
 	private void writeMapInstruction(SpriterMapInstruction instruction, WriterBean writer) throws IOException {
 		writeFileInfo(instruction.file, writer);
 
-		writer.attribute("target_folder", instruction.target.folderId);
-		writer.attribute("target_file", instruction.target.fileId);
+		if(instruction.target.folderId != -1) writer.attribute("target_folder", instruction.target.folderId);
+		if(instruction.target.fileId != -1) writer.attribute("target_file", instruction.target.fileId);
 	}
 
 	private void writeFileInfo(SpriterFileInfo file, WriterBean writer) throws IOException {
