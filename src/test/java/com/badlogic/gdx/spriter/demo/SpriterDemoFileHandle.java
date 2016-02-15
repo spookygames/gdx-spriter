@@ -15,7 +15,7 @@ class SpriterDemoFileHandle extends FileHandle {
 	private String displayString;
 
 	public SpriterDemoFileHandle(FileHandle handle, AssetManager manager) {
-		super(handle.file());
+		super(handle.file(), handle.type());
 		
 		this.manager = manager;
 

@@ -6,8 +6,10 @@
 package com.badlogic.gdx.spriter.demo;
 
 import java.awt.FileDialog;
+import java.util.Iterator;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputMultiplexer;
@@ -89,6 +91,9 @@ public class SpriterDemoApp implements ApplicationListener {
 	Slider timeSlider;
 	ChangeListener timeSliderListener;
 	Label timeLabel;
+	
+	Button removeUselessFilesButton;
+	Button removeDuplicateFilesButton;
 
 	// Data
 	AssetManager assetManager;
@@ -97,7 +102,6 @@ public class SpriterDemoApp implements ApplicationListener {
 	Array<SpriterAnimator> animators = new Array<SpriterAnimator>();
 
 	// Current data
-	FileHandle file = null;
 	SpriterAnimator animator = null;
 	boolean transition = false;
 	SelectBox<?> lastUsedSelectBox = null;
@@ -335,6 +339,27 @@ public class SpriterDemoApp implements ApplicationListener {
 		});
 
 		timeLabel = new Label("---", skin);
+		
+		removeUselessFilesButton = new TextButton("Remove unused files", skin);
+		removeUselessFilesButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				SpriterDemoFileHandle file = fileChooser.getSelected();
+				if(file != null) {
+					SpriterDemoToolbox.removeUnusedFiles(file);
+				}
+			}
+		});
+		
+		removeDuplicateFilesButton = new TextButton("Remove duplicate files", skin);
+		removeDuplicateFilesButton.addListener(new ChangeListener() {
+			@Override
+			public void changed(ChangeEvent event, Actor actor) {
+				SpriterDemoFileHandle file = fileChooser.getSelected();
+				if(file != null)
+					SpriterDemoToolbox.removeDuplicateFiles(file);
+			}
+		});
 
 		// Put everything in place
 
@@ -419,6 +444,11 @@ public class SpriterDemoApp implements ApplicationListener {
 		controlTable.add(playPauseButton).space(5f).expandY().fillY();
 		controlTable.add(timelineTable).expandX().fillX();
 
+		Table toolboxTable = new Table(skin);
+		toolboxTable.row().space(3f);
+		toolboxTable.add(removeUselessFilesButton);
+		toolboxTable.add(removeDuplicateFilesButton);
+
 		rootTable = new Table(skin);
 		rootTable.setFillParent(true);
 		rootTable.row();
@@ -426,6 +456,8 @@ public class SpriterDemoApp implements ApplicationListener {
 		rootTable.add(contentStack).expand().fill();
 		rootTable.row();
 		rootTable.add(controlTable).colspan(2).expandX().fillX();
+		rootTable.row();
+		rootTable.add(toolboxTable).colspan(2).expandX().fillX();
 
 		stage.addActor(rootTable);
 
@@ -519,8 +551,11 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		lastUsedSelectBox = fileChooser;
 
-		if(playPauseButton.isChecked())
-			animator.play(animator.getAnimations().iterator().next());
+		if(playPauseButton.isChecked()) {
+			Iterator<SpriterAnimation> iterator = animator.getAnimations().iterator();
+			if(iterator.hasNext())
+				animator.play(iterator.next());
+		}
 	}
 	
 	private void addFile(FileHandle file, AssetManager manager) {
@@ -588,6 +623,10 @@ public class SpriterDemoApp implements ApplicationListener {
 		}
 
 		fileChooser.setSelected(file);
+		
+		boolean disableToolbox = file.type() == FileType.Internal;
+		removeUselessFilesButton.setDisabled(disableToolbox);
+		removeDuplicateFilesButton.setDisabled(disableToolbox);
 
 		entityChooser.setItems(animators);
 

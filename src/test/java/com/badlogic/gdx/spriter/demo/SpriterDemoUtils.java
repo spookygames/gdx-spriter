@@ -27,7 +27,7 @@ public class SpriterDemoUtils {
 
 	static Array<FileHandle> findFiles(String[] acceptedExtensions) {
 		Array<FileHandle> files = new Array<FileHandle>();
-		FileHandle root = Gdx.files.internal(".");
+		FileHandle root = Gdx.files.local(".");
 		findFiles(files, root, acceptedExtensions);
 		return files;
 	}
