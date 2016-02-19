@@ -5,6 +5,8 @@
 
 package com.badlogic.gdx.spriter;
 
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterData;
@@ -20,8 +22,46 @@ import com.badlogic.gdx.spriter.data.SpriterTimelineKey;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
 
+/**
+ * The {@code FrameData} class represents data to be displayed on a single frame
+ * by a {@link SpriterAnimator}.
+ * 
+ * Data with no graphical representation are contained inside the
+ * {@link FrameMetadata} class.
+ * 
+ * {@code FrameData} instance is refreshed by
+ * {@link SpriterAnimator#update(float deltaTime)} and displayed by
+ * {@link SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)}. As such,
+ * any intended modification to a {@code FrameData} instance should be performed
+ * between these two calls.
+ * 
+ * @see FrameMetadata
+ * @see SpriterAnimator
+ * 
+ * @author thorthur
+ * 
+ */
 public class FrameData {
 
+	/**
+	 * Create a new instance of {@code FrameData} for blended display given the
+	 * two {@link SpriterAnimation}s to blend, the target time and a weight
+	 * factor between the two animations.
+	 * 
+	 * @param first
+	 *            First animation to display
+	 * @param second
+	 *            Second animation to display, if first == second then no
+	 *            blending takes place and factor is of no use
+	 * @param targetTime
+	 *            Target animation time (Spriter time)
+	 * @param factor
+	 *            Weight factor between first and second, should be between 0
+	 *            (display first only) and 1 (display second only)
+	 * @return A new instance of {@code FrameData} containing blended
+	 *         information between first and second, weighted by factor and
+	 *         targeted at targetTime.
+	 */
 	public static FrameData create(SpriterAnimation first, SpriterAnimation second, float targetTime, float factor) {
 
 		if (first == second)
@@ -84,10 +124,35 @@ public class FrameData {
 		return frameData;
 	}
 
+	/**
+	 * Create a new instance of {@code FrameData} to display given
+	 * {@link SpriterAnimation} at given time.
+	 * 
+	 * @param animation
+	 *            Animation to display
+	 * @param targetTime
+	 *            Target animation time (Spriter time)
+	 * @return A new instance of {@code FrameData} containing display
+	 *         information for animation at targetTime.
+	 */
 	public static FrameData create(SpriterAnimation animation, float targetTime) {
 		return create(animation, targetTime, null);
 	}
 
+	/**
+	 * Create a new instance of {@code FrameData} to display given
+	 * {@link SpriterAnimation} at given time, relative to given
+	 * {@link SpriterSpatial} parent information.
+	 * 
+	 * @param animation
+	 *            Animation to display
+	 * @param targetTime
+	 *            Target animation time (Spriter time)
+	 * @param parentInfo
+	 *            Spatial information that act as reference for animation
+	 * @return A new instance of {@code FrameData} containing display
+	 *         information for animation at targetTime, relative to parentInfo.
+	 */
 	public static FrameData create(SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
 		Array<SpriterMainlineKey> keys = animation.mainline.keys;
 		SpriterMainlineKey[] someKeys = getMainlineKeys(keys, targetTime);
@@ -112,8 +177,30 @@ public class FrameData {
 		return frameData;
 	}
 
+	/**
+	 * Frame data related to sprites.
+	 * 
+	 * Sprite data are displayed by a call to
+	 * {@link SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)}.
+	 */
 	public final Array<SpriterObject> spriteData = new Array<SpriterObject>();
+
+	/**
+	 * Frame data related to points.
+	 * 
+	 * Point data are only displayed if a call to
+	 * {@link SpriterAnimator#drawDebug(ShapeRenderer renderer)} is issued. They
+	 * may however be used for other purposes like collision detection.
+	 */
 	public final Array<SpriterObject> pointData = new Array<SpriterObject>();
+
+	/**
+	 * Frame data related to boxes.
+	 * 
+	 * box data are only displayed if a call to
+	 * {@link SpriterAnimator#drawDebug(ShapeRenderer renderer)} is issued. They
+	 * may however be used for other purposes like collision detection.
+	 */
 	public final IntMap<SpriterObject> boxData = new IntMap<SpriterObject>();
 
 	private void addSpatialData(SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime) {
@@ -162,7 +249,7 @@ public class FrameData {
 
 	private static SpriterMainlineKey[] getMainlineKeys(Array<SpriterMainlineKey> keys, float targetTime) {
 		SpriterMainlineKey keyA = lastKeyForTime(keys, targetTime);
-		
+
 		int nextKey = keyA.id + 1;
 		if (nextKey >= keys.size)
 			nextKey = 0;
@@ -242,13 +329,13 @@ public class FrameData {
 		child.alpha *= parent.alpha;
 	}
 
-	public static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
+	static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
 		float nextTime = keyB.time > keyA.time ? keyB.time : animationLength;
 		float factor = getFactor(keyA, keyB, animationLength, targetTime);
 		return MathHelper.linear(keyA.time, nextTime, factor);
 	}
 
-	public static float getFactor(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
+	static float getFactor(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
 		float timeA = keyA.time;
 		float timeB = keyB.time;
 
@@ -263,7 +350,7 @@ public class FrameData {
 		return factor;
 	}
 
-	public static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
+	static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
 		T current = keys.peek();
 		for (T key : keys) {
 			if (key.time > targetTime)
@@ -274,7 +361,7 @@ public class FrameData {
 		return current;
 	}
 
-	public static <T extends SpriterKey> T getNextXLineKey(Array<T> keys, T firstKey, boolean looping) {
+	static <T extends SpriterKey> T getNextXLineKey(Array<T> keys, T firstKey, boolean looping) {
 		if (keys.size < 2)
 			return null;
 

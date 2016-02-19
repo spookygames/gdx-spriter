@@ -12,15 +12,33 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
 
+/**
+ * The {@code SconReader} class lets you read Spriter data from scon files.
+ * Acceptable input can be of type {@link String}, {@link InputStream},
+ * {@link Reader} or {@link FileHandle}.
+ * 
+ * Encoding is set to system default.
+ * 
+ * @see SpriterReader
+ * @see ScmlReader
+ * 
+ * @author thorthur
+ * 
+ */
 public class SconReader extends SpriterReader {
 
+	/**
+	 * Get the file extension this Spriter reader would default to: scon.
+	 * 
+	 * @return The "scon" file extension
+	 */
 	@Override
 	public String getExtension() {
 		return "scon";
 	}
 
 	@Override
-	public ReaderBean parse(Reader reader) throws IOException {
+	ReaderBean parse(Reader reader) throws IOException {
 		return new JsonReaderBean(new JsonReader().parse(reader));
 	}
 

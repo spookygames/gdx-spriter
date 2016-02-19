@@ -16,6 +16,24 @@ import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.utils.ObjectMap;
 
+/**
+ * The {@code SpriterDataLoaderAssetProvider} class provides assets from Spriter
+ * file infos by querying them from a given {@link AssetManager}.
+ * 
+ * As such, it thus only acts as an association table between a file info from
+ * Spriter (folder id + file id) and a proper file name in the
+ * {@link AssetManager}.
+ * 
+ * {@code SpriterDataLoaderAssetProvider} does not directly handle creation of
+ * the disposable objects. Don't forget however to call
+ * {@link AssetManager#dispose()} on the manager when you're done!
+ * 
+ * @see com.badlogic.gdx.spriter.data.SpriterAssetProvider
+ * @see DefaultSpriterAssetProvider
+ * 
+ * @author thorthur
+ * 
+ */
 public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 
 	private final ObjectMap<SpriterFileInfo, Sprite> sprites = new ObjectMap<SpriterFileInfo, Sprite>();
@@ -24,6 +42,17 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 
 	private final AssetManager assetManager;
 
+	/**
+	 * Initializes a new {@code SpriterDataLoaderAssetProvider} from given
+	 * Spriter data, {@link AssetManager} and root asset folder.
+	 * 
+	 * @param data
+	 *            Spriter data to provide assets to
+	 * @param assetManager
+	 *            AssetManager containing the assets
+	 * @param root
+	 *            Base folder where all assets may be found
+	 */
 	public SpriterDataLoaderAssetProvider(SpriterData data, AssetManager assetManager, String root) {
 		super();
 		this.assetManager = assetManager;
@@ -38,6 +67,13 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.badlogic.gdx.spriter.data.SpriterAssetProvider#getSprite(com.badlogic
+	 * .gdx.spriter.data.SpriterFileInfo)
+	 */
 	@Override
 	public Sprite getSprite(SpriterFileInfo info) {
 		Sprite sprite = sprites.get(info);
@@ -48,6 +84,13 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 		return sprite;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.badlogic.gdx.spriter.data.SpriterAssetProvider#getSound(com.badlogic
+	 * .gdx.spriter.data.SpriterFileInfo)
+	 */
 	@Override
 	public Sound getSound(SpriterFileInfo info) {
 		Sound sound = sounds.get(info);

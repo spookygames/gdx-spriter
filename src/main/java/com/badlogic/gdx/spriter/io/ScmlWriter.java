@@ -6,19 +6,37 @@
 package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.XmlWriter;
 
+/**
+ * The {@code ScmlWriter} class writes Spriter data in scml format to output of
+ * type {@link OutputStream}, {@link Writer} or {@link FileHandle}.
+ * 
+ * Encoding is set to UTF-8.
+ * 
+ * @see SpriterWriter
+ * 
+ * @author thorthur
+ * 
+ */
 public class ScmlWriter extends SpriterWriter {
 
+	/**
+	 * Get the file extension this Spriter writer would default to: scml.
+	 * 
+	 * @return The "scml" file extension
+	 */
 	@Override
 	public String getExtension() {
 		return "scml";
 	}
 
 	@Override
-	public WriterBean wrap(Writer writer) throws IOException {
+	WriterBean wrap(Writer writer) throws IOException {
 		return new XmlWriterElement(new XmlWriter(writer));
 	}
 
@@ -28,7 +46,7 @@ public class ScmlWriter extends SpriterWriter {
 
 		public XmlWriterElement(XmlWriter xml) throws IOException {
 			this.xml = xml;
-			
+
 			// XML header
 			this.xml.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		}

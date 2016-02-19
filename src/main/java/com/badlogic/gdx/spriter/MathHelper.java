@@ -4,6 +4,12 @@
 // of the zlib license.  See the LICENSE file for details.
 package com.badlogic.gdx.spriter;
 
+/**
+ * A handful of helpers for all things maths.
+ * 
+ * @author thorthur
+ * 
+ */
 public class MathHelper {
 
 	public static float angleLinear(float a, float b, int spin, float f) {

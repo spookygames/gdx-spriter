@@ -11,13 +11,30 @@ import com.badlogic.gdx.spriter.io.SconReader;
 import com.badlogic.gdx.spriter.io.SpriterReader;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+/**
+ * The {@code SpriterDataFormat} enum defines available format for Spriter
+ * files.
+ * 
+ * @see com.badlogic.gdx.spriter.io.ScmlReader
+ * @see com.badlogic.gdx.spriter.io.ScmlWriter
+ * @see com.badlogic.gdx.spriter.io.SconReader
+ * 
+ * @author thorthur
+ * 
+ */
 public enum SpriterDataFormat {
+	/**
+	 * The scml format is derived from XML.
+	 */
 	SCML {
 		@Override
 		SpriterReader getReader() {
 			return new ScmlReader();
 		}
 	},
+	/**
+	 * The scon format is derived from json.
+	 */
 	SCON {
 		@Override
 		SpriterReader getReader() {

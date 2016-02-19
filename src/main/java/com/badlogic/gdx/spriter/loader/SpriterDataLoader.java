@@ -22,14 +22,40 @@ import com.badlogic.gdx.spriter.io.SpriterReader;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
+/**
+ * The {@code SpriterDataLoader} class is a {@link SynchronousAssetLoader} to
+ * load {@link SpriterData} instances.
+ * 
+ * Passing a {@link SpriterDataParameter} to
+ * {@link AssetManager#load(String, Class, AssetLoaderParameters)} allows to
+ * specify data format and root folder.
+ * 
+ * @author thorthur
+ * 
+ */
 public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, SpriterDataLoader.SpriterDataParameter> {
 
 	private SpriterData data = null;
 
+	/**
+	 * Initializes a new instance of {@code SpriterDataLoader} with given
+	 * {@link FileHandleResolver}.
+	 * 
+	 * @param resolver
+	 */
 	public SpriterDataLoader(FileHandleResolver resolver) {
 		super(resolver);
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.badlogic.gdx.assets.loaders.SynchronousAssetLoader#load(com.badlogic
+	 * .gdx.assets.AssetManager, java.lang.String,
+	 * com.badlogic.gdx.files.FileHandle,
+	 * com.badlogic.gdx.assets.AssetLoaderParameters)
+	 */
 	@Override
 	public SpriterData load(AssetManager am, String fileName, FileHandle file, SpriterDataParameter param) {
 
@@ -40,6 +66,14 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 		return result;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.badlogic.gdx.assets.loaders.AssetLoader#getDependencies(java.lang
+	 * .String, com.badlogic.gdx.files.FileHandle,
+	 * com.badlogic.gdx.assets.AssetLoaderParameters)
+	 */
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Array<AssetDescriptor> getDependencies(String fileName, FileHandle file, SpriterDataParameter param) {

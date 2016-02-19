@@ -49,6 +49,19 @@ import com.badlogic.gdx.spriter.data.SpriterVarline;
 import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 import com.badlogic.gdx.utils.Array;
 
+/**
+ * Abstract class to read Spriter data from input. Acceptable input can be of
+ * type {@link String}, {@link InputStream}, {@link Reader} or
+ * {@link FileHandle}.
+ * 
+ * Encoding is set to system default.
+ * 
+ * @see ScmlReader
+ * @see SconReader
+ * 
+ * @author thorthur
+ * 
+ */
 public abstract class SpriterReader {
 
 	static interface ReaderBean {
@@ -69,18 +82,54 @@ public abstract class SpriterReader {
 		boolean getBoolean(String name, boolean defaultValue);
 	}
 
+	/**
+	 * Read Spriter data from given {@link String}.
+	 * 
+	 * @param content
+	 *            Spriter file content
+	 * @return Spriter data read from content string
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 */
 	public SpriterData load(String content) throws IOException {
 		return load(new StringReader(content));
 	}
 
+	/**
+	 * Read Spriter data from given {@link FileHandle} with default charset.
+	 * 
+	 * @param file
+	 *            Spriter file
+	 * @return Spriter data read from file
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 */
 	public SpriterData load(FileHandle file) throws IOException {
 		return load(file.reader());
 	}
 
+	/**
+	 * Read Spriter data from given {@link InputStream} with default charset.
+	 * 
+	 * @param input
+	 *            Input stream to get data from
+	 * @return Spriter data read from input
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 */
 	public SpriterData load(InputStream input) throws IOException {
 		return load(new InputStreamReader(input));
 	}
 
+	/**
+	 * Read Spriter data from given {@link Reader}.
+	 * 
+	 * @param reader
+	 *            Reader to get data from
+	 * @return Spriter data read from reader
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 */
 	public SpriterData load(Reader reader) throws IOException {
 		SpriterData data = new SpriterData();
 
@@ -93,8 +142,13 @@ public abstract class SpriterReader {
 		return data;
 	}
 
-	public abstract ReaderBean parse(Reader reader) throws IOException;
+	abstract ReaderBean parse(Reader reader) throws IOException;
 
+	/**
+	 * Get the file extension this Spriter reader would default to.
+	 * 
+	 * @return The file extension this Spriter reader would default to
+	 */
 	public abstract String getExtension();
 
 	private void loadData(SpriterData data, ReaderBean root) {
@@ -594,7 +648,7 @@ public abstract class SpriterReader {
 		tag.tagId = i.getInt("t", tag.tagId);
 	}
 
-	public void initializeData(SpriterData data) {
+	private void initializeData(SpriterData data) {
 		for (SpriterEntity entity : data.entities) {
 			entity.data = data;
 			for (SpriterAnimation a : entity.animations) {

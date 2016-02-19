@@ -6,21 +6,41 @@
 package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.XmlReader.Element;
 
+/**
+ * The {@code ScmlReader} class reads Spriter data from scml files. Acceptable
+ * input can be of type {@link String}, {@link InputStream}, {@link Reader} or
+ * {@link FileHandle}.
+ * 
+ * Encoding is set to system default.
+ * 
+ * @see SpriterReader
+ * @see SconReader
+ * 
+ * @author thorthur
+ * 
+ */
 public class ScmlReader extends SpriterReader {
 
+	/**
+	 * Get the file extension this Spriter reader would default to: scml.
+	 * 
+	 * @return The "scml" file extension
+	 */
 	@Override
 	public String getExtension() {
 		return "scml";
 	}
 
 	@Override
-	public ReaderBean parse(Reader reader) throws IOException {
+	ReaderBean parse(Reader reader) throws IOException {
 		return new XmlReaderBean(new XmlReader().parse(reader));
 	}
 

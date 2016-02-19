@@ -10,6 +10,8 @@ import static com.badlogic.gdx.spriter.FrameData.getFactor;
 import static com.badlogic.gdx.spriter.FrameData.getNextXLineKey;
 import static com.badlogic.gdx.spriter.FrameData.lastKeyForTime;
 
+import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterElement;
 import com.badlogic.gdx.spriter.data.SpriterEventline;
@@ -30,12 +32,66 @@ import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ObjectMap;
 
+/**
+ * The {@code FrameMetaData} class represents data to be handled (but not
+ * displayed) on a single frame by a {@link SpriterAnimator}: sounds, events,
+ * variables and tags.
+ * 
+ * Data that get displayed are contained in the {@link FrameData} class.
+ * 
+ * {@code FrameMetaData} instance is refreshed by
+ * {@link SpriterAnimator#update(float deltaTime)} and handled by
+ * {@link SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)}. As such,
+ * any intended modification to a {@code FrameMetaData} instance should be
+ * performed between these two calls.
+ * 
+ * @see FrameData
+ * @see SpriterAnimator
+ * 
+ * @author thorthur
+ * 
+ */
 public class FrameMetadata {
 
+	/**
+	 * Create a new instance of {@code FrameMetadata} for blended display given
+	 * the two {@link SpriterAnimation}s to blend, the target time, current
+	 * delta time and a weight factor between the two animations.
+	 * 
+	 * 
+	 * @param first
+	 *            First animation to display
+	 * @param second
+	 *            Second animation to display
+	 * @param targetTime
+	 *            Target animation time (Spriter time)
+	 * @param deltaTime
+	 *            Current delta time (Gdx delta time)
+	 * @param factor
+	 *            Weight factor between first and second, should be between 0
+	 *            and 1. A value lower than 0.5 should create data for first,
+	 *            any other value should create data for second.
+	 * @return A new instance of {@code FrameMetadata} containing meta
+	 *         information for first or second (depending on factor) and
+	 *         targeted at targetTime.
+	 */
 	public static FrameMetadata create(SpriterAnimation first, SpriterAnimation second, float targetTime, float deltaTime, float factor) {
 		return create(factor < 0.5f ? first : second, targetTime, deltaTime);
 	}
 
+	/**
+	 * Create a new instance of {@code FrameMetadata} for given
+	 * {@link SpriterAnimation} at given time.
+	 * 
+	 * @param animation
+	 *            Animation to display
+	 * @param targetTime
+	 *            Target animation time (Spriter time)
+	 * @param deltaTime
+	 *            Current delta time (Gdx delta time)
+	 * @return A new instance of {@code FrameMetadata} containing meta
+	 *         information for animation at targetTime with current deltaTime.
+	 */
 	public static FrameMetadata create(SpriterAnimation animation, float targetTime, float deltaTime) {
 		FrameMetadata metadata = new FrameMetadata();
 		metadata.addVariableAndTagData(animation, targetTime);
@@ -44,11 +100,45 @@ public class FrameMetadata {
 		return metadata;
 	}
 
+	/**
+	 * Animation-related variables, indexed by variable name.
+	 * 
+	 * Like objectVars, these variables are not used by {@link SpriterAnimator}.
+	 */
 	public final ObjectMap<String, SpriterVarValue> animationVars = new ObjectMap<String, SpriterVarValue>();
+
+	/**
+	 * Object-related variables, indexed by object name and variable name.
+	 * 
+	 * Like animationVars, these variables are not used by
+	 * {@link SpriterAnimator}.
+	 */
 	public final ObjectMap<String, ObjectMap<String, SpriterVarValue>> objectVars = new ObjectMap<String, ObjectMap<String, SpriterVarValue>>();
+
+	/**
+	 * Animation-related tags.
+	 * 
+	 * Like objectTags, these tags are not used by {@link SpriterAnimator}.
+	 */
 	public final Array<String> animationTags = new Array<String>();
+
+	/**
+	 * Object-related tags, indexed by object name.
+	 * 
+	 * Like animationTags, these tags are not used by {@link SpriterAnimator}.
+	 */
 	public final ObjectMap<String, Array<String>> objectTags = new ObjectMap<String, Array<String>>();
+
+	/**
+	 * Events are triggered by {@link SpriterAnimator} and can be caught with a
+	 * {@link SpriterAnimationListener}.
+	 */
 	public final Array<String> events = new Array<String>();
+
+	/**
+	 * Sounds are automatically played by
+	 * {@link SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)}.
+	 */
 	public final Array<SpriterSound> sounds = new Array<SpriterSound>();
 
 	private void addObjectVar(String objectName, String varName, SpriterVarValue value) {

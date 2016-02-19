@@ -13,10 +13,55 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
+import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.files.FileHandle;
-import com.badlogic.gdx.spriter.data.*;
+import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
+import com.badlogic.gdx.spriter.data.SpriterCurveType;
+import com.badlogic.gdx.spriter.data.SpriterData;
+import com.badlogic.gdx.spriter.data.SpriterElement;
+import com.badlogic.gdx.spriter.data.SpriterEntity;
+import com.badlogic.gdx.spriter.data.SpriterEventline;
+import com.badlogic.gdx.spriter.data.SpriterFile;
+import com.badlogic.gdx.spriter.data.SpriterFileInfo;
+import com.badlogic.gdx.spriter.data.SpriterFileType;
+import com.badlogic.gdx.spriter.data.SpriterFolder;
+import com.badlogic.gdx.spriter.data.SpriterKey;
+import com.badlogic.gdx.spriter.data.SpriterMainline;
+import com.badlogic.gdx.spriter.data.SpriterMainlineKey;
+import com.badlogic.gdx.spriter.data.SpriterMapInstruction;
+import com.badlogic.gdx.spriter.data.SpriterMeta;
+import com.badlogic.gdx.spriter.data.SpriterObject;
+import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
+import com.badlogic.gdx.spriter.data.SpriterObjectRef;
+import com.badlogic.gdx.spriter.data.SpriterObjectType;
+import com.badlogic.gdx.spriter.data.SpriterRef;
+import com.badlogic.gdx.spriter.data.SpriterSound;
+import com.badlogic.gdx.spriter.data.SpriterSoundline;
+import com.badlogic.gdx.spriter.data.SpriterSoundlineKey;
+import com.badlogic.gdx.spriter.data.SpriterSpatial;
+import com.badlogic.gdx.spriter.data.SpriterTag;
+import com.badlogic.gdx.spriter.data.SpriterTagline;
+import com.badlogic.gdx.spriter.data.SpriterTaglineKey;
+import com.badlogic.gdx.spriter.data.SpriterTimeline;
+import com.badlogic.gdx.spriter.data.SpriterTimelineKey;
+import com.badlogic.gdx.spriter.data.SpriterVarDef;
+import com.badlogic.gdx.spriter.data.SpriterVarline;
+import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 
+/**
+ * Abstract class to write Spriter data to output of type {@link OutputStream},
+ * {@link Writer} or {@link FileHandle}.
+ * 
+ * Encoding is set to UTF-8.
+ * 
+ * @see ScmlWriter
+ * 
+ * @author thorthur
+ * 
+ */
 public abstract class SpriterWriter {
 
 	static interface WriterBean {
@@ -30,25 +75,72 @@ public abstract class SpriterWriter {
 		public void subElement() throws IOException;
 
 		public void pop() throws IOException;
-		
+
 		public void close() throws IOException;
 	}
 
-	
+	/**
+	 * Write Spriter data into given file handle with charset UTF-8. Any
+	 * existing file will be erased.
+	 * 
+	 * @param data
+	 *            Spriter data to write
+	 * @param file
+	 *            Handle on the file to write into
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 * @throws GdxRuntimeException
+	 *             if this file handle represents a directory, if it is a
+	 *             {@link FileType#Classpath} or {@link FileType#Internal} file,
+	 *             or if it could not be written.
+	 */
 	public void write(SpriterData data, FileHandle file) throws IOException {
 		write(data, file.writer(false, "UTF-8"));
 	}
 
+	/**
+	 * Write Spriter data into given output stream with charset UTF-8.
+	 * 
+	 * @param data
+	 *            Spriter data to write
+	 * @param output
+	 *            Outputstream to write into
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 * @throws GdxRuntimeException
+	 *             if this file handle represents a directory, if it is a
+	 *             {@link FileType#Classpath} or {@link FileType#Internal} file,
+	 *             or if it could not be written.
+	 */
 	public void write(SpriterData data, OutputStream output) throws IOException {
 		write(data, new OutputStreamWriter(output, "UTF-8"));
 	}
 
+	/**
+	 * Write Spriter data with given Writer.
+	 * 
+	 * @param data
+	 *            Spriter data to write
+	 * @param writer
+	 *            Writer to write with
+	 * @throws IOException
+	 *             If an I/O error occurs
+	 * @throws GdxRuntimeException
+	 *             if this file handle represents a directory, if it is a
+	 *             {@link FileType#Classpath} or {@link FileType#Internal} file,
+	 *             or if it could not be written.
+	 */
 	public void write(SpriterData data, Writer writer) throws IOException {
 		writeData(data, wrap(writer));
 	}
 
-	public abstract WriterBean wrap(Writer writer) throws IOException;
+	abstract WriterBean wrap(Writer writer) throws IOException;
 
+	/**
+	 * Get the file extension this Spriter writer would default to.
+	 * 
+	 * @return The file extension this Spriter writer would default to
+	 */
 	public abstract String getExtension();
 
 	private void writeData(SpriterData data, WriterBean writer) throws IOException {
@@ -56,17 +148,17 @@ public abstract class SpriterWriter {
 		writer.attribute(getExtension().toLowerCase() + "_version", data.version);
 		writer.attribute("generator", data.generator);
 		writer.attribute("generator_version", data.generatorVersion);
-		
+
 		writeFolders(data.folders, writer);
-		
-		if(data.tags.size > 0) {
+
+		if (data.tags.size > 0) {
 			writer.array("tag_list");
 			writeElements(data.tags, writer);
 			writer.pop();
 		}
-		
+
 		writeEntities(data.entities, writer);
-		
+
 		writer.close();
 	}
 
@@ -96,8 +188,10 @@ public abstract class SpriterWriter {
 	}
 
 	private void writeElement(SpriterElement element, WriterBean writer, boolean withId) throws IOException {
-		if(withId) writer.attribute("id", element.id);
-		if(element.name != null) writer.attribute("name", element.name);
+		if (withId)
+			writer.attribute("id", element.id);
+		if (element.name != null)
+			writer.attribute("name", element.name);
 	}
 
 	private void writeFiles(Array<SpriterFile> files, WriterBean writer) throws IOException {
@@ -110,7 +204,8 @@ public abstract class SpriterWriter {
 
 	private void writeFile(SpriterFile file, WriterBean writer) throws IOException {
 		writeElement(file, writer);
-		if(file.type != SpriterFileType.Image) writer.attribute("type", file.type.toString().toLowerCase());
+		if (file.type != SpriterFileType.Image)
+			writer.attribute("type", file.type.toString().toLowerCase());
 		writer.attribute("width", file.width);
 		writer.attribute("height", file.height);
 		writer.attribute("pivot_x", doubleToString(file.pivotX));
@@ -130,12 +225,12 @@ public abstract class SpriterWriter {
 
 		writeObjectInfos(entity.objectInfos, writer);
 
-		if(entity.variables.size > 0) {
+		if (entity.variables.size > 0) {
 			writer.array("var_defs");
 			writeVariables(entity.variables, writer);
 			writer.pop();
 		}
-		
+
 		writeCharacterMaps(entity.characterMaps, writer);
 		writeAnimations(entity.animations, writer);
 	}
@@ -165,20 +260,25 @@ public abstract class SpriterWriter {
 	private void writeObjectInfo(SpriterObjectInfo objInfo, WriterBean writer) throws IOException {
 		writeElement(objInfo, writer, false);
 
-		if(objInfo.realName != null) writer.attribute("realname", objInfo.realName);
+		if (objInfo.realName != null)
+			writer.attribute("realname", objInfo.realName);
 		writer.attribute("type", objInfo.objectType.toString().toLowerCase());
-		if(objInfo.width != 0f) writer.attribute("w", doubleToString(objInfo.width));
-		if(objInfo.height != 0f) writer.attribute("h", doubleToString(objInfo.height));
-		if(objInfo.pivotX != 0f) writer.attribute("pivot_x", doubleToString(objInfo.pivotX));
-		if(objInfo.pivotY != 0f) writer.attribute("pivot_y", doubleToString(objInfo.pivotY));
+		if (objInfo.width != 0f)
+			writer.attribute("w", doubleToString(objInfo.width));
+		if (objInfo.height != 0f)
+			writer.attribute("h", doubleToString(objInfo.height));
+		if (objInfo.pivotX != 0f)
+			writer.attribute("pivot_x", doubleToString(objInfo.pivotX));
+		if (objInfo.pivotY != 0f)
+			writer.attribute("pivot_y", doubleToString(objInfo.pivotY));
 
-		if(objInfo.frames.size > 0) {
+		if (objInfo.frames.size > 0) {
 			writer.array("frames");
 			writeFrames(objInfo.frames, writer);
 			writer.pop();
 		}
 
-		if(objInfo.variables.size > 0) {
+		if (objInfo.variables.size > 0) {
 			writer.array("var_defs");
 			writeVariables(objInfo.variables, writer);
 			writer.pop();
@@ -217,17 +317,21 @@ public abstract class SpriterWriter {
 	private void writeMapInstruction(SpriterMapInstruction instruction, WriterBean writer) throws IOException {
 		writeFileInfo(instruction.file, writer);
 
-		if(instruction.target.folderId != -1) writer.attribute("target_folder", instruction.target.folderId);
-		if(instruction.target.fileId != -1) writer.attribute("target_file", instruction.target.fileId);
+		if (instruction.target.folderId != -1)
+			writer.attribute("target_folder", instruction.target.folderId);
+		if (instruction.target.fileId != -1)
+			writer.attribute("target_file", instruction.target.fileId);
 	}
 
 	private void writeFileInfo(SpriterFileInfo file, WriterBean writer) throws IOException {
 		writeFileInfo(file, writer, true);
 	}
-	
+
 	private void writeFileInfo(SpriterFileInfo file, WriterBean writer, boolean forceWrite) throws IOException {
-		if(forceWrite || file.folderId != 0) writer.attribute("folder", file.folderId);
-		if(forceWrite || file.fileId != 0) writer.attribute("file", file.fileId);
+		if (forceWrite || file.folderId != 0)
+			writer.attribute("folder", file.folderId);
+		if (forceWrite || file.fileId != 0)
+			writer.attribute("file", file.fileId);
 	}
 
 	private void writeAnimations(Array<SpriterAnimation> animations, WriterBean writer) throws IOException {
@@ -242,7 +346,8 @@ public abstract class SpriterWriter {
 		writeElement(animation, writer);
 		writer.attribute("length", doubleToString(animation.length));
 		writer.attribute("interval", doubleToString(animation.interval));
-		if(animation.looping != true) writer.attribute("looping", animation.looping);
+		if (animation.looping != true)
+			writer.attribute("looping", animation.looping);
 
 		writeMainline(animation.mainline, writer);
 
@@ -280,15 +385,21 @@ public abstract class SpriterWriter {
 	private void writeKey(SpriterKey key, WriterBean writer) throws IOException {
 		writeKey(key, writer, false);
 	}
-	
+
 	private void writeKey(SpriterKey key, WriterBean writer, boolean alwaysWriteTime) throws IOException {
 		writeElement(key, writer);
-		if(alwaysWriteTime || key.time != 0f) writer.attribute("time", doubleToString(key.time));
-		if(key.curveType != SpriterCurveType.Linear) writer.attribute("curve_type", key.curveType.toString().toLowerCase());
-		if(key.c1 != 0f) writer.attribute("c1", key.c1);
-		if(key.c2 != 0f) writer.attribute("c2", key.c2);
-		if(key.c3 != 0f) writer.attribute("c3", key.c3);
-		if(key.c4 != 0f) writer.attribute("c4", key.c4);
+		if (alwaysWriteTime || key.time != 0f)
+			writer.attribute("time", doubleToString(key.time));
+		if (key.curveType != SpriterCurveType.Linear)
+			writer.attribute("curve_type", key.curveType.toString().toLowerCase());
+		if (key.c1 != 0f)
+			writer.attribute("c1", key.c1);
+		if (key.c2 != 0f)
+			writer.attribute("c2", key.c2);
+		if (key.c3 != 0f)
+			writer.attribute("c3", key.c3);
+		if (key.c4 != 0f)
+			writer.attribute("c4", key.c4);
 	}
 
 	private void writeBoneRefs(Array<SpriterRef> boneRefs, WriterBean writer) throws IOException {
@@ -301,7 +412,8 @@ public abstract class SpriterWriter {
 
 	private void writeRef(SpriterRef boneRef, WriterBean writer) throws IOException {
 		writeElement(boneRef, writer);
-		if(boneRef.parentId != -1f) writer.attribute("parent", boneRef.parentId);
+		if (boneRef.parentId != -1f)
+			writer.attribute("parent", boneRef.parentId);
 		writer.attribute("timeline", boneRef.timelineId);
 		writer.attribute("key", boneRef.keyId);
 	}
@@ -329,11 +441,13 @@ public abstract class SpriterWriter {
 
 	private void writeTimeline(SpriterTimeline timeline, WriterBean writer) throws IOException {
 		writeElement(timeline, writer);
-		if(timeline.objectType != SpriterObjectType.Sprite) writer.attribute("object_type", timeline.objectType.toString().toLowerCase());
-		if(timeline.objectId != 0) writer.attribute("obj", timeline.objectId);
+		if (timeline.objectType != SpriterObjectType.Sprite)
+			writer.attribute("object_type", timeline.objectType.toString().toLowerCase());
+		if (timeline.objectId != 0)
+			writer.attribute("obj", timeline.objectId);
 		writeTimelineKeys(timeline.keys, writer);
 
-		if(timeline.meta != null) {
+		if (timeline.meta != null) {
 			writer.element("meta");
 			writeMeta(timeline.meta, writer);
 			writer.pop();
@@ -351,7 +465,8 @@ public abstract class SpriterWriter {
 	private void writeTimelineKey(SpriterTimelineKey key, WriterBean writer) throws IOException {
 		writeKey(key, writer);
 
-		if(key.spin != 1) writer.attribute("spin", key.spin);
+		if (key.spin != 1)
+			writer.attribute("spin", key.spin);
 
 		if (key.boneInfo != null) {
 			writer.element("bone");
@@ -367,25 +482,35 @@ public abstract class SpriterWriter {
 	}
 
 	private void writeSpatial(SpriterSpatial spatial, WriterBean writer) throws IOException {
-		if(spatial.x != 0f) writer.attribute("x", doubleToString(spatial.x));
-		if(spatial.y != 0f) writer.attribute("y", doubleToString(spatial.y));
+		if (spatial.x != 0f)
+			writer.attribute("x", doubleToString(spatial.x));
+		if (spatial.y != 0f)
+			writer.attribute("y", doubleToString(spatial.y));
 		writer.attribute("angle", doubleToString(spatial.angle));
-		if(spatial.scaleX != 1f) writer.attribute("scale_x", spatial.scaleX);
-		if(spatial.scaleY != 1f) writer.attribute("scale_y", spatial.scaleY);
-		if(spatial.alpha != 1f) writer.attribute("a", doubleToString(spatial.alpha));
+		if (spatial.scaleX != 1f)
+			writer.attribute("scale_x", spatial.scaleX);
+		if (spatial.scaleY != 1f)
+			writer.attribute("scale_y", spatial.scaleY);
+		if (spatial.alpha != 1f)
+			writer.attribute("a", doubleToString(spatial.alpha));
 	}
 
 	private void writeObject(SpriterObject objectInfo, WriterBean writer) throws IOException {
 
 		writeFileInfo(objectInfo.file, writer);
-		
+
 		writeSpatial(objectInfo, writer);
-		
-		if(objectInfo.animationId != 0) writer.attribute("animation", objectInfo.animationId);
-		if(!Float.isNaN(objectInfo.pivotX)) writer.attribute("pivot_x", doubleToString(objectInfo.pivotX));
-		if(!Float.isNaN(objectInfo.pivotY)) writer.attribute("pivot_y", doubleToString(objectInfo.pivotY));
-		if(objectInfo.entityId != 0) writer.attribute("entity", objectInfo.entityId);
-		if(objectInfo.t != 0f) writer.attribute("t", objectInfo.t);
+
+		if (objectInfo.animationId != 0)
+			writer.attribute("animation", objectInfo.animationId);
+		if (!Float.isNaN(objectInfo.pivotX))
+			writer.attribute("pivot_x", doubleToString(objectInfo.pivotX));
+		if (!Float.isNaN(objectInfo.pivotY))
+			writer.attribute("pivot_y", doubleToString(objectInfo.pivotY));
+		if (objectInfo.entityId != 0)
+			writer.attribute("entity", objectInfo.entityId);
+		if (objectInfo.t != 0f)
+			writer.attribute("t", objectInfo.t);
 	}
 
 	private void writeEventlines(Array<SpriterEventline> eventlines, WriterBean writer) throws IOException {
@@ -512,8 +637,9 @@ public abstract class SpriterWriter {
 		writeElement(tag, writer);
 		writer.attribute("t", tag.tagId);
 	}
-	
+
 	private static final DecimalFormat doubleFormat = new DecimalFormat("#.######", DecimalFormatSymbols.getInstance(Locale.US));
+
 	private static String doubleToString(double d) {
 		return doubleFormat.format(d);
 	}
