@@ -38,7 +38,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ArraySelection;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.spriter.FrameMetadata;
+import com.badlogic.gdx.spriter.FrameData;
 import com.badlogic.gdx.spriter.SpriterAnimationListener;
 import com.badlogic.gdx.spriter.SpriterAnimator;
 import com.badlogic.gdx.spriter.SpriterTestData;
@@ -667,7 +667,7 @@ public class SpriterDemoApp implements ApplicationListener {
 			timeSlider.setValue(animator.getTime());
 			timeSlider.addListener(timeSliderListener);
 			String metaText = "";
-			FrameMetadata md = animator.getCurrentMetadata();
+			FrameData md = animator.getCurrentFrameData();
 			if (md.animationVars.size > 0) {
 				metaText += "Animation vars:";
 				for (Entry<String, SpriterVarValue> entry : md.animationVars)

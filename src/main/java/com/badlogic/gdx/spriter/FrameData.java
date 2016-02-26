@@ -10,24 +10,37 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterData;
+import com.badlogic.gdx.spriter.data.SpriterElement;
+import com.badlogic.gdx.spriter.data.SpriterEventline;
 import com.badlogic.gdx.spriter.data.SpriterFileInfo;
 import com.badlogic.gdx.spriter.data.SpriterKey;
 import com.badlogic.gdx.spriter.data.SpriterMainlineKey;
+import com.badlogic.gdx.spriter.data.SpriterMeta;
 import com.badlogic.gdx.spriter.data.SpriterObject;
+import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
 import com.badlogic.gdx.spriter.data.SpriterObjectRef;
 import com.badlogic.gdx.spriter.data.SpriterRef;
+import com.badlogic.gdx.spriter.data.SpriterSound;
+import com.badlogic.gdx.spriter.data.SpriterSoundline;
+import com.badlogic.gdx.spriter.data.SpriterSoundlineKey;
 import com.badlogic.gdx.spriter.data.SpriterSpatial;
+import com.badlogic.gdx.spriter.data.SpriterTag;
+import com.badlogic.gdx.spriter.data.SpriterTagline;
+import com.badlogic.gdx.spriter.data.SpriterTaglineKey;
 import com.badlogic.gdx.spriter.data.SpriterTimeline;
 import com.badlogic.gdx.spriter.data.SpriterTimelineKey;
+import com.badlogic.gdx.spriter.data.SpriterVarDef;
+import com.badlogic.gdx.spriter.data.SpriterVarValue;
+import com.badlogic.gdx.spriter.data.SpriterVarline;
+import com.badlogic.gdx.spriter.data.SpriterVarlineKey;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
+import com.badlogic.gdx.utils.ObjectMap;
 
 /**
  * The {@code FrameData} class represents data to be displayed on a single frame
- * by a {@link SpriterAnimator}.
- * 
- * Data with no graphical representation are contained inside the
- * {@link FrameMetadata} class.
+ * by a {@link SpriterAnimator}: sprites, points, boxes, sounds, events,
+ * variables and tags.
  * 
  * {@code FrameData} instance is refreshed by
  * {@link SpriterAnimator#update(float deltaTime)} and displayed by
@@ -35,7 +48,6 @@ import com.badlogic.gdx.utils.IntMap;
  * any intended modification to a {@code FrameData} instance should be performed
  * between these two calls.
  * 
- * @see FrameMetadata
  * @see SpriterAnimator
  * 
  * @author thorthur
@@ -44,10 +56,17 @@ import com.badlogic.gdx.utils.IntMap;
 public class FrameData {
 
 	/**
-	 * Create a new instance of {@code FrameData} for blended display given the
-	 * two {@link SpriterAnimation}s to blend, the target time and a weight
-	 * factor between the two animations.
+	 * Update an instance of {@code FrameData} for blended display given the two
+	 * {@link SpriterAnimation}s to blend, the target time and a weight factor
+	 * between the two animations.
 	 * 
+	 * @param frameData
+	 *            Instance of {@code FrameData} that will contain blended
+	 *            information between first and second, weighted by factor and
+	 *            targeted at targetTime with current deltaTime.
+	 * @param configuration
+	 *            Update configuration, specifying which fields of frameData
+	 *            should actually be updated
 	 * @param first
 	 *            First animation to display
 	 * @param second
@@ -55,17 +74,19 @@ public class FrameData {
 	 *            blending takes place and factor is of no use
 	 * @param targetTime
 	 *            Target animation time (Spriter time)
+	 * @param deltaTime
+	 *            Current delta time (Gdx delta time)
 	 * @param factor
 	 *            Weight factor between first and second, should be between 0
 	 *            (display first only) and 1 (display second only)
-	 * @return A new instance of {@code FrameData} containing blended
-	 *         information between first and second, weighted by factor and
-	 *         targeted at targetTime.
 	 */
-	public static FrameData create(SpriterAnimation first, SpriterAnimation second, float targetTime, float factor) {
+	static void update(FrameData frameData, FrameDataUpdateConfiguration configuration, SpriterAnimation first, SpriterAnimation second, float targetTime, float deltaTime, float factor) {
 
-		if (first == second)
-			return create(first, targetTime);
+		if (first == second) {
+			// Don't bother blending if the two animations are equal
+			update(frameData, configuration, first, targetTime, deltaTime);
+			return;
+		}
 
 		float targetTimeSecond = targetTime / first.length * second.length;
 
@@ -77,104 +98,141 @@ public class FrameData {
 		SpriterMainlineKey secondKeyA = keys[0];
 		SpriterMainlineKey secondKeyB = keys[1];
 
-		if (firstKeyA.boneRefs.size != secondKeyA.boneRefs.size || firstKeyB.boneRefs.size != secondKeyB.boneRefs.size || firstKeyA.objectRefs.size != secondKeyA.objectRefs.size || firstKeyB.objectRefs.size != secondKeyB.objectRefs.size)
-			return create(first, targetTime);
+		if (firstKeyA.boneRefs.size != secondKeyA.boneRefs.size || firstKeyB.boneRefs.size != secondKeyB.boneRefs.size || firstKeyA.objectRefs.size != secondKeyA.objectRefs.size || firstKeyB.objectRefs.size != secondKeyB.objectRefs.size) {
+			// Cannot blend if the two animations are not blendable
+			update(frameData, configuration, first, targetTime, deltaTime);
+			return;
+		}
 
-		float adjustedTimeFirst = adjustTime(firstKeyA, firstKeyB, first.length, targetTime);
-		float adjustedTimeSecond = adjustTime(secondKeyA, secondKeyB, second.length, targetTimeSecond);
+		frameData.clear();
 
-		SpriterSpatial[] boneInfosA = getBoneInfos(firstKeyA, first, adjustedTimeFirst);
-		SpriterSpatial[] boneInfosB = getBoneInfos(secondKeyA, second, adjustedTimeSecond);
-		SpriterSpatial[] boneInfos = null;
+		// Define reference animation
+		SpriterAnimation currentAnimation = factor < 0.5f ? first : second;
 
-		if (boneInfosA != null && boneInfosB != null) {
-			boneInfos = new SpriterSpatial[boneInfosA.length];
-			for (int i = 0; i < boneInfosA.length; ++i) {
-				SpriterSpatial boneA = boneInfosA[i];
-				SpriterSpatial boneB = boneInfosB[i];
-				SpriterSpatial interpolated = interpolate(boneA, boneB, factor, 1);
-				interpolated.angle = MathHelper.closerAngleLinear(boneA.angle, boneB.angle, factor);
-				boneInfos[i] = interpolated;
+		if (configuration.spatial) {
+			float adjustedTimeFirst = adjustTime(firstKeyA, firstKeyB, first.length, targetTime);
+			float adjustedTimeSecond = adjustTime(secondKeyA, secondKeyB, second.length, targetTimeSecond);
+
+			SpriterSpatial[] boneInfosA = getBoneInfos(firstKeyA, first, adjustedTimeFirst);
+			SpriterSpatial[] boneInfosB = getBoneInfos(secondKeyA, second, adjustedTimeSecond);
+			SpriterSpatial[] boneInfos = null;
+
+			if (boneInfosA != null && boneInfosB != null) {
+				boneInfos = new SpriterSpatial[boneInfosA.length];
+				for (int i = 0; i < boneInfosA.length; ++i) {
+					SpriterSpatial boneA = boneInfosA[i];
+					SpriterSpatial boneB = boneInfosB[i];
+					SpriterSpatial interpolated = interpolate(boneA, boneB, factor, 1);
+					interpolated.angle = MathHelper.closerAngleLinear(boneA.angle, boneB.angle, factor);
+					boneInfos[i] = interpolated;
+				}
+			}
+
+			SpriterMainlineKey baseKey = factor < 0.5f ? firstKeyA : firstKeyB;
+
+			for (int i = 0; i < baseKey.objectRefs.size; ++i) {
+				SpriterObjectRef objectRefFirst = baseKey.objectRefs.get(i);
+				SpriterObject interpolatedFirst = getObjectInfo(objectRefFirst, first, adjustedTimeFirst);
+
+				SpriterObjectRef objectRefSecond = secondKeyA.objectRefs.get(i);
+				SpriterObject interpolatedSecond = getObjectInfo(objectRefSecond, second, adjustedTimeSecond);
+
+				SpriterObject info = interpolate(interpolatedFirst, interpolatedSecond, factor, 1);
+				info.angle = MathHelper.closerAngleLinear(interpolatedFirst.angle, interpolatedSecond.angle, factor);
+				info.pivotX = MathHelper.linear(interpolatedFirst.pivotX, interpolatedSecond.pivotX, factor);
+				info.pivotY = MathHelper.linear(interpolatedFirst.pivotY, interpolatedSecond.pivotY, factor);
+
+				if (boneInfos != null && objectRefFirst.parentId >= 0)
+					applyParentTransform(info, boneInfos[objectRefFirst.parentId]);
+
+				frameData.addSpatialData(configuration, info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, targetTime, deltaTime);
 			}
 		}
 
-		SpriterMainlineKey baseKey = factor < 0.5f ? firstKeyA : firstKeyB;
-		SpriterAnimation currentAnimation = factor < 0.5f ? first : second;
+		if (configuration.tagsAndVariables)
+			frameData.addVariableAndTagData(currentAnimation, targetTime);
 
-		FrameData frameData = new FrameData();
+		if (configuration.events)
+			frameData.addEventData(currentAnimation, targetTime, deltaTime);
 
-		for (int i = 0; i < baseKey.objectRefs.size; ++i) {
-			SpriterObjectRef objectRefFirst = baseKey.objectRefs.get(i);
-			SpriterObject interpolatedFirst = getObjectInfo(objectRefFirst, first, adjustedTimeFirst);
+		if (configuration.sounds)
+			frameData.addSoundData(currentAnimation, targetTime, deltaTime);
 
-			SpriterObjectRef objectRefSecond = secondKeyA.objectRefs.get(i);
-			SpriterObject interpolatedSecond = getObjectInfo(objectRefSecond, second, adjustedTimeSecond);
-
-			SpriterObject info = interpolate(interpolatedFirst, interpolatedSecond, factor, 1);
-			info.angle = MathHelper.closerAngleLinear(interpolatedFirst.angle, interpolatedSecond.angle, factor);
-			info.pivotX = MathHelper.linear(interpolatedFirst.pivotX, interpolatedSecond.pivotX, factor);
-			info.pivotY = MathHelper.linear(interpolatedFirst.pivotY, interpolatedSecond.pivotY, factor);
-
-			if (boneInfos != null && objectRefFirst.parentId >= 0)
-				applyParentTransform(info, boneInfos[objectRefFirst.parentId]);
-
-			frameData.addSpatialData(info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, targetTime);
-		}
-
-		return frameData;
 	}
 
 	/**
-	 * Create a new instance of {@code FrameData} to display given
+	 * Update an instance of {@code FrameData} to display given
 	 * {@link SpriterAnimation} at given time.
 	 * 
+	 * @param frameData
+	 *            Instance of {@code FrameData} that will contain display
+	 *            information for animation at targetTime with current
+	 *            deltaTime.
+	 * @param configuration
+	 *            Update configuration, specifying which fields of frameData
+	 *            should actually be updated
 	 * @param animation
 	 *            Animation to display
 	 * @param targetTime
 	 *            Target animation time (Spriter time)
-	 * @return A new instance of {@code FrameData} containing display
-	 *         information for animation at targetTime.
+	 * @param deltaTime
+	 *            Current delta time (Gdx delta time)
 	 */
-	public static FrameData create(SpriterAnimation animation, float targetTime) {
-		return create(animation, targetTime, null);
+	static void update(FrameData frameData, FrameDataUpdateConfiguration configuration, SpriterAnimation animation, float targetTime, float deltaTime) {
+		update(frameData, configuration, animation, targetTime, deltaTime, null);
 	}
 
 	/**
-	 * Create a new instance of {@code FrameData} to display given
+	 * Update an instance of {@code FrameData} to display given
 	 * {@link SpriterAnimation} at given time, relative to given
 	 * {@link SpriterSpatial} parent information.
 	 * 
+	 * @param frameData
+	 *            Instance of {@code FrameData} that will contain display
+	 *            information for animation at targetTime with current
+	 *            deltaTime, relative to parentInfo.
+	 * @param configuration
+	 *            Update configuration, specifying which fields of frameData
+	 *            should actually be updated
 	 * @param animation
 	 *            Animation to display
 	 * @param targetTime
 	 *            Target animation time (Spriter time)
+	 * @param deltaTime
+	 *            Current delta time (Gdx delta time)
 	 * @param parentInfo
 	 *            Spatial information that act as reference for animation
-	 * @return A new instance of {@code FrameData} containing display
-	 *         information for animation at targetTime, relative to parentInfo.
 	 */
-	public static FrameData create(SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
-		Array<SpriterMainlineKey> keys = animation.mainline.keys;
-		SpriterMainlineKey[] someKeys = getMainlineKeys(keys, targetTime);
-		SpriterMainlineKey keyA = someKeys[0];
-		SpriterMainlineKey keyB = someKeys[1];
+	static void update(FrameData frameData, FrameDataUpdateConfiguration configuration, SpriterAnimation animation, float targetTime, float deltaTime, SpriterSpatial parentInfo) {
 
-		float adjustedTime = adjustTime(keyA, keyB, animation.length, targetTime);
+		frameData.clear();
 
-		SpriterSpatial[] boneInfos = getBoneInfos(keyA, animation, targetTime, parentInfo);
+		if (configuration.spatial) {
+			Array<SpriterMainlineKey> keys = animation.mainline.keys;
+			SpriterMainlineKey[] someKeys = getMainlineKeys(keys, targetTime);
+			SpriterMainlineKey keyA = someKeys[0];
+			SpriterMainlineKey keyB = someKeys[1];
 
-		FrameData frameData = new FrameData();
+			float adjustedTime = adjustTime(keyA, keyB, animation.length, targetTime);
 
-		for (SpriterObjectRef objectRef : keyA.objectRefs) {
-			SpriterObject interpolated = getObjectInfo(objectRef, animation, adjustedTime);
+			SpriterSpatial[] boneInfos = getBoneInfos(keyA, animation, targetTime, parentInfo);
 
-			if (boneInfos != null && objectRef.parentId >= 0)
-				applyParentTransform(interpolated, boneInfos[objectRef.parentId]);
+			for (SpriterObjectRef objectRef : keyA.objectRefs) {
+				SpriterObject interpolated = getObjectInfo(objectRef, animation, adjustedTime);
 
-			frameData.addSpatialData(interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, targetTime);
+				if (boneInfos != null && objectRef.parentId >= 0)
+					applyParentTransform(interpolated, boneInfos[objectRef.parentId]);
+
+				frameData.addSpatialData(configuration, interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, targetTime, deltaTime);
+			}
 		}
 
-		return frameData;
+		if (configuration.tagsAndVariables)
+			frameData.addVariableAndTagData(animation, targetTime);
+		if (configuration.events)
+			frameData.addEventData(animation, targetTime, deltaTime);
+		if (configuration.sounds)
+			frameData.addSoundData(animation, targetTime, deltaTime);
 	}
 
 	/**
@@ -203,7 +261,212 @@ public class FrameData {
 	 */
 	public final IntMap<SpriterObject> boxData = new IntMap<SpriterObject>();
 
-	private void addSpatialData(SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime) {
+	/**
+	 * Animation-related variables, indexed by variable name.
+	 * 
+	 * Like objectVars, these variables are not used by {@link SpriterAnimator}.
+	 */
+	public final ObjectMap<String, SpriterVarValue> animationVars = new ObjectMap<String, SpriterVarValue>();
+
+	/**
+	 * Object-related variables, indexed by object name and variable name.
+	 * 
+	 * Like animationVars, these variables are not used by
+	 * {@link SpriterAnimator}.
+	 */
+	public final ObjectMap<String, ObjectMap<String, SpriterVarValue>> objectVars = new ObjectMap<String, ObjectMap<String, SpriterVarValue>>();
+
+	/**
+	 * Animation-related tags.
+	 * 
+	 * Like objectTags, these tags are not used by {@link SpriterAnimator}.
+	 */
+	public final Array<String> animationTags = new Array<String>();
+
+	/**
+	 * Object-related tags, indexed by object name.
+	 * 
+	 * Like animationTags, these tags are not used by {@link SpriterAnimator}.
+	 */
+	public final ObjectMap<String, Array<String>> objectTags = new ObjectMap<String, Array<String>>();
+
+	/**
+	 * Events are triggered by {@link SpriterAnimator} and can be caught with a
+	 * {@link SpriterAnimationListener}.
+	 */
+	public final Array<String> events = new Array<String>();
+
+	/**
+	 * Sounds are automatically played by
+	 * {@link SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)}.
+	 */
+	public final Array<SpriterSound> sounds = new Array<SpriterSound>();
+
+	private void clear() {
+		spriteData.clear();
+		pointData.clear();
+		boxData.clear();
+		animationVars.clear();
+		objectVars.clear();
+		animationTags.clear();
+		objectTags.clear();
+		events.clear();
+		sounds.clear();
+	}
+
+	private void addObjectVar(String objectName, String varName, SpriterVarValue value) {
+		ObjectMap<String, SpriterVarValue> values = objectVars.get(objectName);
+		if (values == null) {
+			values = new ObjectMap<String, SpriterVarValue>();
+			objectVars.put(objectName, values);
+		}
+		values.put(varName, value);
+	}
+
+	private void addObjectTag(String objectName, String tag) {
+		Array<String> tags = objectTags.get(objectName);
+		if (tags == null) {
+			tags = new Array<String>();
+			objectTags.put(objectName, tags);
+		}
+		tags.add(tag);
+	}
+
+	private void addVariableAndTagData(SpriterAnimation animation, float targetTime) {
+		if (animation.meta == null)
+			return;
+
+		for (SpriterVarline varline : animation.meta.varlines) {
+			SpriterVarDef variable = animation.entity.variables.get(varline.def);
+			this.animationVars.put(variable.name, getVariableValue(animation, variable, varline, targetTime));
+		}
+
+		Array<SpriterElement> tags = animation.entity.data.tags;
+		SpriterTagline tagline = animation.meta.tagline;
+
+		if (tagline != null) {
+			SpriterTaglineKey key = lastKeyForTime(tagline.keys, targetTime);
+
+			if (key != null)
+				for (SpriterTag tag : key.tags)
+					this.animationTags.add(tags.get(tag.tagId).name);
+		}
+
+		for (SpriterTimeline timeline : animation.timelines) {
+			SpriterMeta meta = timeline.meta;
+
+			if (meta == null)
+				continue;
+
+			SpriterObjectInfo objInfo = getObjectInfo(animation, timeline.name);
+
+			if (objInfo == null)
+				continue;
+
+			if (meta.varlines != null) {
+				for (SpriterVarline varline : timeline.meta.varlines) {
+					SpriterVarDef variable = objInfo.variables.get(varline.def);
+					this.addObjectVar(objInfo.name, variable.name, getVariableValue(animation, variable, varline, targetTime));
+				}
+			}
+
+			if (meta.tagline != null) {
+				SpriterTaglineKey key = lastKeyForTime(tagline.keys, targetTime);
+
+				if (key != null && key.tags != null)
+					for (SpriterTag tag : key.tags)
+						this.addObjectTag(objInfo.name, tags.get(tag.tagId).name);
+			}
+		}
+	}
+
+	private static SpriterVarValue getVariableValue(SpriterAnimation animation, SpriterVarDef varDef, SpriterVarline varline, float targetTime) {
+		Array<SpriterVarlineKey> keys = varline.keys;
+
+		if (keys == null)
+			return varDef.variableValue;
+
+		SpriterVarlineKey keyA = lastKeyForTime(keys, targetTime);
+
+		if (keyA == null)
+			keyA = keys.peek();
+
+		if (keyA == null)
+			return varDef.variableValue;
+
+		SpriterVarlineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
+
+		if (keyB == null)
+			return keyA.variableValue;
+
+		float adjustedTime = keyA.time == keyB.time ? targetTime : adjustTime(keyA, keyB, animation.length, targetTime);
+		float factor = getFactor(keyA, keyB, animation.length, adjustedTime);
+
+		return interpolate(keyA.variableValue, keyB.variableValue, factor);
+	}
+
+	private void addEventData(SpriterAnimation animation, float targetTime, float deltaTime) {
+		if (animation.eventlines == null)
+			return;
+
+		float previousTime = targetTime - deltaTime;
+		for (SpriterEventline eventline : animation.eventlines)
+			for (SpriterKey key : eventline.keys)
+				if (isTriggered(key, targetTime, previousTime, animation.length))
+					this.events.add(eventline.name);
+	}
+
+	private void addSoundData(SpriterAnimation animation, float targetTime, float deltaTime) {
+		if (animation.soundlines.size == 0)
+			return;
+
+		float previousTime = targetTime - deltaTime;
+		for (SpriterSoundline soundline : animation.soundlines) {
+			for (SpriterSoundlineKey key : soundline.keys) {
+				SpriterSound sound = key.soundObject;
+				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length))
+					this.sounds.add(sound);
+			}
+		}
+	}
+
+	private static boolean isTriggered(SpriterKey key, float targetTime, float previousTime, float animationLength) {
+		float min = Math.min(previousTime, targetTime);
+		float max = Math.max(previousTime, targetTime);
+
+		if (min > max) {
+			if (min < key.time)
+				max += animationLength;
+			else
+				min -= animationLength;
+		}
+		return min <= key.time && max >= key.time;
+	}
+
+	private static SpriterObjectInfo getObjectInfo(SpriterAnimation animation, String name) {
+		SpriterObjectInfo objInfo = null;
+		for (SpriterObjectInfo info : animation.entity.objectInfos) {
+			if (info.name.equals(name)) {
+				objInfo = info;
+				break;
+			}
+		}
+
+		return objInfo;
+	}
+
+	private static SpriterVarValue interpolate(SpriterVarValue valA, SpriterVarValue valB, float factor) {
+		SpriterVarValue value = new SpriterVarValue();
+
+		value.type = valA.type;
+		value.stringValue = valA.stringValue;
+		value.floatValue = MathHelper.linear(valA.floatValue, valB.floatValue, factor);
+		value.intValue = (int) MathHelper.linear(valA.intValue, valB.intValue, factor);
+
+		return value;
+	}
+
+	private void addSpatialData(FrameDataUpdateConfiguration configuration, SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime, float deltaTime) {
 		switch (timeline.objectType) {
 		case Sprite:
 			this.spriteData.add(info);
@@ -211,7 +474,9 @@ public class FrameData {
 		case Entity:
 			SpriterAnimation newAnim = spriter.entities.get(info.entityId).animations.get(info.animationId);
 			float newTargetTime = info.t * newAnim.length;
-			this.spriteData.addAll(FrameData.create(newAnim, newTargetTime, info).spriteData);
+			FrameData subData = new FrameData();
+			FrameData.update(subData, configuration, newAnim, newTargetTime, deltaTime, info);
+			this.spriteData.addAll(subData.spriteData);
 			break;
 		case Point:
 			this.pointData.add(info);
@@ -314,6 +579,52 @@ public class FrameData {
 		return object;
 	}
 
+	private static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
+		float nextTime = keyB.time > keyA.time ? keyB.time : animationLength;
+		float factor = getFactor(keyA, keyB, animationLength, targetTime);
+		return MathHelper.linear(keyA.time, nextTime, factor);
+	}
+
+	private static float getFactor(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
+		float timeA = keyA.time;
+		float timeB = keyB.time;
+
+		if (timeA > timeB) {
+			timeB += animationLength;
+			if (targetTime < timeA)
+				targetTime += animationLength;
+		}
+
+		float factor = MathHelper.reverseLinear(timeA, timeB, targetTime);
+		factor = keyA.curveType.applySpeedCurve(keyA, factor);
+		return factor;
+	}
+
+	private static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
+		T current = keys.peek();
+		for (T key : keys) {
+			if (key.time > targetTime)
+				break;
+			current = key;
+		}
+
+		return current;
+	}
+
+	private static <T extends SpriterKey> T getNextXLineKey(Array<T> keys, T firstKey, boolean looping) {
+		if (keys.size < 2)
+			return null;
+
+		int keyBId = firstKey.id + 1;
+		if (keyBId >= keys.size) {
+			if (!looping)
+				return null;
+			keyBId = 0;
+		}
+
+		return keys.get(keyBId);
+	}
+
 	static void applyParentTransform(SpriterSpatial child, SpriterSpatial parent) {
 		float px = parent.scaleX * child.x;
 		float py = parent.scaleY * child.y;
@@ -329,55 +640,9 @@ public class FrameData {
 		child.alpha *= parent.alpha;
 	}
 
-	static float adjustTime(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
-		float nextTime = keyB.time > keyA.time ? keyB.time : animationLength;
-		float factor = getFactor(keyA, keyB, animationLength, targetTime);
-		return MathHelper.linear(keyA.time, nextTime, factor);
-	}
-
-	static float getFactor(SpriterKey keyA, SpriterKey keyB, float animationLength, float targetTime) {
-		float timeA = keyA.time;
-		float timeB = keyB.time;
-
-		if (timeA > timeB) {
-			timeB += animationLength;
-			if (targetTime < timeA)
-				targetTime += animationLength;
-		}
-
-		float factor = MathHelper.reverseLinear(timeA, timeB, targetTime);
-		factor = keyA.curveType.applySpeedCurve(keyA, factor);
-		return factor;
-	}
-
-	static <T extends SpriterKey> T lastKeyForTime(Array<T> keys, float targetTime) {
-		T current = keys.peek();
-		for (T key : keys) {
-			if (key.time > targetTime)
-				break;
-			current = key;
-		}
-
-		return current;
-	}
-
-	static <T extends SpriterKey> T getNextXLineKey(Array<T> keys, T firstKey, boolean looping) {
-		if (keys.size < 2)
-			return null;
-
-		int keyBId = firstKey.id + 1;
-		if (keyBId >= keys.size) {
-			if (!looping)
-				return null;
-			keyBId = 0;
-		}
-
-		return keys.get(keyBId);
-	}
-
 	@Override
 	public String toString() {
-		return "FrameData [spriteData=" + spriteData + ", pointData=" + pointData + ", boxData=" + boxData + "]";
+		return "FrameData [spriteData=" + this.spriteData + ", pointData=" + this.pointData + ", boxData=" + this.boxData + ", animationVars=" + this.animationVars + ", objectVars=" + this.objectVars + ", animationTags=" + this.animationTags + ", objectTags=" + this.objectTags + ", events=" + this.events + ", sounds=" + this.sounds + "]";
 	}
 
 }
