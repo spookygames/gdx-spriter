@@ -145,7 +145,7 @@ public class FrameData {
 				if (boneInfos != null && objectRefFirst.parentId >= 0)
 					applyParentTransform(info, boneInfos[objectRefFirst.parentId]);
 
-				frameData.addSpatialData(configuration, info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, targetTime, deltaTime);
+				frameData.addSpatialData(configuration, info, currentAnimation.timelines.get(objectRefFirst.timelineId), currentAnimation.entity.data, deltaTime);
 			}
 		}
 
@@ -215,7 +215,7 @@ public class FrameData {
 
 			float adjustedTime = adjustTime(keyA, keyB, animation.length, targetTime);
 
-			SpriterSpatial[] boneInfos = getBoneInfos(keyA, animation, targetTime, parentInfo);
+			SpriterSpatial[] boneInfos = getBoneInfos(keyA, animation, adjustedTime, parentInfo);
 
 			for (SpriterObjectRef objectRef : keyA.objectRefs) {
 				SpriterObject interpolated = getObjectInfo(objectRef, animation, adjustedTime);
@@ -223,7 +223,7 @@ public class FrameData {
 				if (boneInfos != null && objectRef.parentId >= 0)
 					applyParentTransform(interpolated, boneInfos[objectRef.parentId]);
 
-				frameData.addSpatialData(configuration, interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, targetTime, deltaTime);
+				frameData.addSpatialData(configuration, interpolated, animation.timelines.get(objectRef.timelineId), animation.entity.data, deltaTime);
 			}
 		}
 
@@ -466,7 +466,7 @@ public class FrameData {
 		return value;
 	}
 
-	private void addSpatialData(FrameDataUpdateConfiguration configuration, SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float targetTime, float deltaTime) {
+	private void addSpatialData(FrameDataUpdateConfiguration configuration, SpriterObject info, SpriterTimeline timeline, SpriterData spriter, float deltaTime) {
 		switch (timeline.objectType) {
 		case Sprite:
 			this.spriteData.add(info);
