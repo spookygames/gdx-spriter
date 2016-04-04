@@ -5,6 +5,8 @@
 
 package com.badlogic.gdx.spriter.loader;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 
 import com.badlogic.gdx.assets.AssetDescriptor;
@@ -15,6 +17,7 @@ import com.badlogic.gdx.assets.loaders.SynchronousAssetLoader;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
@@ -59,7 +62,8 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	@Override
 	public SpriterData load(AssetManager am, String fileName, FileHandle file, SpriterDataParameter param) {
 
-		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, defineRootPath(file, param));
+		String rootPath = defineRootPath(file, param);
+		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, rootPath, defineTextureAtlas(file, rootPath, param));
 
 		SpriterData result = this.data;
 		this.data = null;
@@ -81,6 +85,7 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 
 		SpriterDataFormat format = defineFormat(file, param);
 		String rootPath = defineRootPath(file, param);
+		String atlas = defineTextureAtlas(file, rootPath, param);
 
 		try {
 
@@ -89,11 +94,18 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 
 			deps = new Array<AssetDescriptor>();
 
+			// If atlas, load as TextureAtlas
+			if (atlas != null) {
+				deps.add(new AssetDescriptor<TextureAtlas>(atlas.startsWith(rootPath) ? atlas : (rootPath + atlas), TextureAtlas.class));
+			}
+
 			for (SpriterFolder fo : data.folders) {
 				for (SpriterFile fi : fo.files) {
 					switch (fi.type) {
 					case Image:
-						deps.add(new AssetDescriptor<Texture>(rootPath + fi.name, Texture.class));
+						if (atlas == null) { // If no atlas, load as Textures
+							deps.add(new AssetDescriptor<Texture>(rootPath + fi.name, Texture.class));
+						}
 						break;
 					case Sound:
 						deps.add(new AssetDescriptor<Sound>(rootPath + fi.name, Sound.class));
@@ -108,6 +120,14 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 		return deps;
 	}
 
+	private String defineRootPath(FileHandle file, SpriterDataParameter param) {
+		if (param != null && param.rootFolder != null) {
+			return param.rootFolder + "/";
+		} else {
+			return file.parent().path() + "/";
+		}
+	}
+
 	private SpriterDataFormat defineFormat(FileHandle file, SpriterDataParameter param) {
 		if (param != null && param.format != null) {
 			return param.format;
@@ -116,11 +136,30 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 		}
 	}
 
-	private String defineRootPath(FileHandle file, SpriterDataParameter param) {
-		if (param != null && param.rootFolder != null) {
-			return param.rootFolder + "/";
+	private String defineTextureAtlas(FileHandle file, String rootFolder, SpriterDataParameter param) {
+		if (param != null && param.textureAtlas != null) {
+			return param.textureAtlas;
 		} else {
-			return file.parent().path() + "/";
+
+			FileHandle[] possibleAtlasFiles = resolve(rootFolder).list(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					int dotIndex = name.lastIndexOf('.');
+					if (dotIndex != -1) {
+						String extension = name.substring(dotIndex + 1);
+						return extension.equalsIgnoreCase("atlas") || extension.equalsIgnoreCase("pack");
+					} else {
+						return false;
+					}
+				}
+			});
+
+			if (possibleAtlasFiles.length == 0) {
+				// No atlas file here
+				return null;
+			} else {
+				return possibleAtlasFiles[0].path();
+			}
 		}
 	}
 
@@ -130,10 +169,25 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	 * additional configuration is necessary for the {@link SpriterData}.
 	 */
 	public static class SpriterDataParameter extends AssetLoaderParameters<SpriterData> {
-		/** Root folder to find related assets. */
-		public String rootFolder;
-		/** Format of Spriter file */
-		public SpriterDataFormat format;
+		/**
+		 * Optional root folder to find related assets. Defaults to Spriter
+		 * file's parent folder.
+		 */
+		public String rootFolder = null;
+
+		/**
+		 * Optional format of Spriter file. Defaults to format identification
+		 * based on Spriter file's extension.
+		 */
+		public SpriterDataFormat format = null;
+
+		/**
+		 * Optional texture atlas file. If a relative path is provided, it will
+		 * be relative to rootFolder. Defaults to searching first file with
+		 * .atlas extension in rootFolder and loading every texture individually
+		 * (ie not using atlas) if none is found.
+		 */
+		public String textureAtlas = null;
 	}
 
 }
