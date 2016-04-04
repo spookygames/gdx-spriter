@@ -9,6 +9,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
@@ -41,10 +42,13 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 	private final ObjectMap<SpriterFileInfo, String> fileNames = new ObjectMap<SpriterFileInfo, String>();
 
 	private final AssetManager assetManager;
+	private final String textureAtlas;
 
 	/**
 	 * Initializes a new {@code SpriterDataLoaderAssetProvider} from given
-	 * Spriter data, {@link AssetManager} and root asset folder.
+	 * Spriter data, {@link AssetManager} and root asset folder. Build sprites
+	 * from individual {@link Texture} instance. In order to benefit from
+	 * {@link TextureAtlas} use other constructor.
 	 * 
 	 * @param data
 	 *            Spriter data to provide assets to
@@ -54,15 +58,38 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 	 *            Base folder where all assets may be found
 	 */
 	public SpriterDataLoaderAssetProvider(SpriterData data, AssetManager assetManager, String root) {
+		this(data, assetManager, root, null);
+	}
+
+	/**
+	 * Initializes a new {@code SpriterDataLoaderAssetProvider} from given
+	 * Spriter data, {@link AssetManager}, root asset folder and
+	 * {@link TextureAtlas}. If the TextureAtlas provided is null, will build
+	 * sprites from individual {@link Texture} instances which end up less
+	 * performant.
+	 * 
+	 * @param data
+	 *            Spriter data to provide assets to
+	 * @param assetManager
+	 *            AssetManager containing the assets
+	 * @param root
+	 *            Base folder where all assets may be found
+	 * @param textureAtlas
+	 *            Path to the TextureAtlas used to build sprites, will build
+	 *            them from individual textures if set to null
+	 */
+	public SpriterDataLoaderAssetProvider(SpriterData data, AssetManager assetManager, String root, String textureAtlas) {
 		super();
 		this.assetManager = assetManager;
+		this.textureAtlas = textureAtlas;
 
 		for (SpriterFolder folder : data.folders) {
 			for (SpriterFile file : folder.files) {
 				SpriterFileInfo info = new SpriterFileInfo();
 				info.folderId = folder.id;
 				info.fileId = file.id;
-				fileNames.put(info, root + file.name);
+				String fileName = textureAtlas == null ? root + file.name : file.name.substring(0, file.name.lastIndexOf('.'));
+				fileNames.put(info, fileName);
 			}
 		}
 	}
@@ -78,7 +105,15 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 	public Sprite getSprite(SpriterFileInfo info) {
 		Sprite sprite = sprites.get(info);
 		if (sprite == null) {
-			sprite = new Sprite(assetManager.get(fileNames.get(info), Texture.class));
+
+			String fileName = fileNames.get(info);
+
+			if (textureAtlas == null) {
+				sprite = new Sprite(assetManager.get(fileName, Texture.class));
+			} else {
+				sprite = new Sprite(assetManager.get(textureAtlas, TextureAtlas.class).findRegion(fileName));
+			}
+
 			sprites.put(info, sprite);
 		}
 		return sprite;

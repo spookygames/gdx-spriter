@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<spriter_data scml_version="1.0" generator="BrashMonkey Spriter" generator_version="r3">
+    <folder id="0">
+        <file id="0" name="Robot.png" width="95" height="106" pivot_x="0.463158" pivot_y="0.132075"/>
+        <file id="1" name="A.png" width="37" height="23" pivot_x="0.486486" pivot_y="0.521739"/>
+        <file id="2" name="B.png" width="37" height="23" pivot_x="0.486486" pivot_y="0.521739"/>
+    </folder>
+    <entity id="0" name="Letter Bot">
+        <var_defs>
+            <i id="0" name="current letter" type="string" default="A"/>
+        </var_defs>
+        <animation id="0" name="Letter Cycle" length="2000" interval="100">
+            <mainline>
+                <key id="0">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="0" z_index="1"/>
+                </key>
+                <key id="1" time="773">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="1" z_index="1"/>
+                </key>
+                <key id="2" time="871">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="2" z_index="1"/>
+                </key>
+                <key id="3" time="975">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="3" z_index="1"/>
+                </key>
+                <key id="4" time="1820">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="4" z_index="1"/>
+                </key>
+                <key id="5" time="1900">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="5" z_index="1"/>
+                </key>
+                <key id="6" time="1986">
+                    <object_ref id="0" timeline="0" key="0" z_index="0"/>
+                    <object_ref id="1" timeline="1" key="6" z_index="1"/>
+                </key>
+            </mainline>
+            <timeline id="0" name="Robot">
+                <key id="0" spin="0">
+                    <object folder="0" file="0" x="-5" y="8" angle="0"/>
+                </key>
+            </timeline>
+            <timeline id="1" name="A">
+                <key id="0" spin="0">
+                    <object folder="0" file="1" x="-1" y="45" angle="0"/>
+                </key>
+                <key id="1" time="773" spin="0">
+                    <object folder="0" file="1" x="-1" y="45" angle="0"/>
+                </key>
+                <key id="2" time="871" spin="0">
+                    <object folder="0" file="2" x="-1" y="45" angle="0" scale_x="0.205128"/>
+                </key>
+                <key id="3" time="975" spin="0">
+                    <object folder="0" file="2" x="-1" y="45" angle="0"/>
+                </key>
+                <key id="4" time="1820" spin="0">
+                    <object folder="0" file="2" x="-1" y="45" angle="0"/>
+                </key>
+                <key id="5" time="1900" spin="0">
+                    <object folder="0" file="1" x="-1" y="45" angle="0" scale_x="0.102564"/>
+                </key>
+                <key id="6" time="1986" spin="0">
+                    <object folder="0" file="1" x="-1" y="45" angle="0"/>
+                </key>
+            </timeline>
+            <meta>
+                <varline id="0" def="0">
+                    <key id="0" time="2" val=""/>
+                    <key id="1" time="871" val="B"/>
+                    <key id="2" time="1901" val="A"/>
+                </varline>
+            </meta>
+        </animation>
+    </entity>
+</spriter_data>
