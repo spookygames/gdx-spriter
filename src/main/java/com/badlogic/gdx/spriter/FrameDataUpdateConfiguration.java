@@ -6,8 +6,10 @@
 package com.badlogic.gdx.spriter;
 
 /**
- * The {@code FrameDataUpdateConfiguration} class specifies which part of a {@link FrameData} should be updated during a call to {@link SpriterAnimator#update(float)}.
- * Any field that is not updated will be cleared during update.
+ * The {@code FrameDataUpdateConfiguration} class specifies which part of a
+ * {@link FrameData} should be updated during a call to
+ * {@link SpriterAnimator#update(float)}. Any field that is not updated will be
+ * cleared during update.
  * 
  * @see FrameData
  * @see SpriterAnimator
@@ -22,7 +24,7 @@ public class FrameDataUpdateConfiguration {
 	 * {@link FrameData#pointData} and {@link FrameData#boxData}) should be
 	 * updated during a call to {@link SpriterAnimator#update(float)}.
 	 */
-	public boolean spatial = true;;
+	public boolean spatial = true;
 
 	/**
 	 * Defines whether {@link FrameData#animationTags},
@@ -46,7 +48,8 @@ public class FrameDataUpdateConfiguration {
 
 	@Override
 	public String toString() {
-		return "FrameDataUpdateConfiguration [spatial=" + this.spatial + ", tagsAndVariables=" + this.tagsAndVariables + ", events=" + this.events + ", sounds=" + this.sounds + "]";
+		return "FrameDataUpdateConfiguration [spatial=" + this.spatial + ", tagsAndVariables=" + this.tagsAndVariables
+				+ ", events=" + this.events + ", sounds=" + this.sounds + "]";
 	}
 
 }

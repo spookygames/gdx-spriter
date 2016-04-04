@@ -235,6 +235,8 @@ public class FrameData {
 			frameData.addSoundData(animation, targetTime, deltaTime);
 	}
 
+	private static final FrameData tempData = new FrameData();
+
 	/**
 	 * Frame data related to sprites.
 	 * 
@@ -474,9 +476,8 @@ public class FrameData {
 		case Entity:
 			SpriterAnimation newAnim = spriter.entities.get(info.entityId).animations.get(info.animationId);
 			float newTargetTime = info.t * newAnim.length;
-			FrameData subData = new FrameData();
-			FrameData.update(subData, configuration, newAnim, newTargetTime, deltaTime, info);
-			this.spriteData.addAll(subData.spriteData);
+			FrameData.update(tempData, configuration, newAnim, newTargetTime, deltaTime, info);
+			this.spriteData.addAll(tempData.spriteData);
 			break;
 		case Point:
 			this.pointData.add(info);
@@ -496,6 +497,7 @@ public class FrameData {
 	private static SpriterSpatial[] getBoneInfos(SpriterMainlineKey key, SpriterAnimation animation, float targetTime, SpriterSpatial parentInfo) {
 		if (key.boneRefs.size == 0)
 			return null;
+
 		SpriterSpatial[] ret = new SpriterSpatial[key.boneRefs.size];
 
 		for (int i = 0; i < key.boneRefs.size; ++i) {
