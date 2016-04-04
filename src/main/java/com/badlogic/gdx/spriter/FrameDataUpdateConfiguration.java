@@ -22,7 +22,7 @@ public class FrameDataUpdateConfiguration {
 	 * {@link FrameData#pointData} and {@link FrameData#boxData}) should be
 	 * updated during a call to {@link SpriterAnimator#update(float)}.
 	 */
-	public boolean spatial = true;;
+	public boolean spatial = true;
 
 	/**
 	 * Defines whether {@link FrameData#animationTags},
