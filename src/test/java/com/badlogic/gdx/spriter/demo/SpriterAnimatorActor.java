@@ -48,22 +48,17 @@ public class SpriterAnimatorActor extends Widget implements Disableable {
 	public void act(float delta) {
 		super.act(delta);
 
-		if(animator == null)
+		if (animator == null)
 			return;
 
 		animator.update(disabled ? 0f : delta);
 	}
 
 	@Override
-	public void layout () {
-		if (animator == null) return;
-	}
-
-	@Override
-	public void draw (Batch batch, float parentAlpha) {
+	public void draw(Batch batch, float parentAlpha) {
 		validate();
 
-		if(animator == null)
+		if (animator == null)
 			return;
 
 		Color color = getColor();
@@ -75,23 +70,25 @@ public class SpriterAnimatorActor extends Widget implements Disableable {
 		float scaleY = getScaleY();
 		float rotation = getRotation();
 
-		float formerX = animator.getX();
-		float formerY = animator.getY();
-		float formerScaleX = animator.getScaleX();
-		float formerScaleY = animator.getScaleY();
-		float formerAngle = animator.getAngle();
+		float animationX = animator.getX();
+		float animationY = animator.getY();
+		float animationScaleX = animator.getScaleX();
+		float animationScaleY = animator.getScaleY();
+		float animationAngle = animator.getAngle();
 
-		animator.setX(formerX + x);
-		animator.setY(formerY + y);
-		animator.setScale(formerScaleX * scaleX, formerScaleY * scaleY);
-		animator.setAngle(formerAngle + rotation);
+		animator.setX(animationX + x);
+		animator.setY(animationY + y);
+		animator.setScale(animationScaleX * scaleX, animationScaleY * scaleY);
+		animator.setAngle(animationAngle + rotation);
 
+		// Update here again to take offsets into account
+		animator.update(0f);
 		animator.draw(batch);
 
-		animator.setX(formerX);
-		animator.setY(formerY);
-		animator.setScale(formerScaleX, formerScaleY);
-		animator.setAngle(formerAngle);
+		animator.setX(animationX);
+		animator.setY(animationY);
+		animator.setScale(animationScaleX, animationScaleY);
+		animator.setAngle(animationAngle);
 	}
 
 	@Override
@@ -101,8 +98,11 @@ public class SpriterAnimatorActor extends Widget implements Disableable {
 
 		super.drawDebug(renderer);
 
-		if(animator == null)
+		if (animator == null)
 			return;
+
+		renderer.set(ShapeType.Line);
+		renderer.setColor(getStage().getDebugColor());
 
 		float x = getX();
 		float y = getY();
@@ -110,27 +110,27 @@ public class SpriterAnimatorActor extends Widget implements Disableable {
 		float scaleY = getScaleY();
 		float rotation = getRotation();
 
-		float formerX = animator.getX();
-		float formerY = animator.getY();
-		float formerScaleX = animator.getScaleX();
-		float formerScaleY = animator.getScaleY();
-		float formerAngle = animator.getAngle();
+		float animationX = animator.getX();
+		float animationY = animator.getY();
+		float animationScaleX = animator.getScaleX();
+		float animationScaleY = animator.getScaleY();
+		float animationAngle = animator.getAngle();
 
-		animator.setX(formerX + x);
-		animator.setY(formerY + y);
-		animator.setScale(formerScaleX * scaleX, formerScaleY * scaleY);
-		animator.setAngle(formerAngle + rotation);
+		animator.setX(animationX + x);
+		animator.setY(animationY + y);
+		animator.setScale(animationScaleX * scaleX, animationScaleY * scaleY);
+		animator.setAngle(animationAngle + rotation);
 
-		renderer.set(ShapeType.Line);
-		renderer.setColor(getStage().getDebugColor());
+		// Update here again to take offsets into account
+		animator.update(0f);
 
 		// Draw position
 		renderer.circle(animator.getX(), animator.getY(), 1f);
 		animator.drawDebug(renderer);
 
-		animator.setX(formerX);
-		animator.setY(formerY);
-		animator.setScale(formerScaleX, formerScaleY);
-		animator.setAngle(formerAngle);
+		animator.setX(animationX);
+		animator.setY(animationY);
+		animator.setScale(animationScaleX, animationScaleY);
+		animator.setAngle(animationAngle);
 	}
 }
