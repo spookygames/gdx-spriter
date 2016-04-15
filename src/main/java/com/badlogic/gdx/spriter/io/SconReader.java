@@ -6,8 +6,10 @@
 package com.badlogic.gdx.spriter.io;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;

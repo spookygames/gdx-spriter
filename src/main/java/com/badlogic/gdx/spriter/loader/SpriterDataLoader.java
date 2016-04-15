@@ -42,6 +42,8 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	 * {@link FileHandleResolver}.
 	 * 
 	 * @param resolver
+	 *            Resolver to use to resolve the file associated with the asset
+	 *            name.
 	 */
 	public SpriterDataLoader(FileHandleResolver resolver) {
 		super(resolver);

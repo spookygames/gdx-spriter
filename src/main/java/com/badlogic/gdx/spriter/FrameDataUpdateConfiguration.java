@@ -6,7 +6,7 @@
 package com.badlogic.gdx.spriter;
 
 /**
- * The {@code FrameDataUpdateConfiguration} class specifies which part of a {@link FrameData} should be updated during a call to {@link SpriterAnimator#update(float).
+ * The {@code FrameDataUpdateConfiguration} class specifies which part of a {@link FrameData} should be updated during a call to {@link SpriterAnimator#update(float)}.
  * Any field that is not updated will be cleared during update.
  * 
  * @see FrameData

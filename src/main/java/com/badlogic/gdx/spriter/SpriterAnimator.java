@@ -178,7 +178,7 @@ public class SpriterAnimator {
 	 * If the map has already been added to this {@link SpriterAnimator},
 	 * nothing happens.
 	 * 
-	 * @param characterMapName
+	 * @param characterMap
 	 *            Character map to add
 	 */
 	public void addCharacterMap(SpriterCharacterMap characterMap) {
@@ -554,11 +554,11 @@ public class SpriterAnimator {
 	 * Play given {@link SpriterAnimation} given its name. It becomes the
 	 * current animation of this {@link SpriterAnimator}.
 	 * 
-	 * @param animation
+	 * @param animationName
 	 *            Name of the animation to play
 	 */
-	public void play(String name) {
-		SpriterAnimation animation = animations.get(name);
+	public void play(String animationName) {
+		SpriterAnimation animation = animations.get(animationName);
 		play(animation);
 	}
 
@@ -581,13 +581,13 @@ public class SpriterAnimator {
 	 * Play given {@link SpriterAnimation} next given its name, progressively
 	 * blending from current animation to given one.
 	 * 
-	 * @param animation
+	 * @param animationName
 	 *            Name of the animation to play next
 	 * @param totalTransitionTime
 	 *            Time before next animation is the only one being played
 	 */
-	public void transition(String name, float totalTransitionTime) {
-		transition(animations.get(name), totalTransitionTime);
+	public void transition(String animationName, float totalTransitionTime) {
+		transition(animations.get(animationName), totalTransitionTime);
 	}
 
 	/**
@@ -702,7 +702,8 @@ public class SpriterAnimator {
 		if (nextAnimation == null) {
 			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, time, deltaTime);
 		} else {
-			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime, factor);
+			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime,
+					factor);
 		}
 	}
 
