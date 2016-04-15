@@ -65,7 +65,8 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 	public SpriterData load(AssetManager am, String fileName, FileHandle file, SpriterDataParameter param) {
 
 		String rootPath = defineRootPath(file, param);
-		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, rootPath, defineTextureAtlas(file, rootPath, param));
+		data.assetProvider = new SpriterDataLoaderAssetProvider(data, am, rootPath,
+				defineTextureAtlas(file, rootPath, param));
 
 		SpriterData result = this.data;
 		this.data = null;
@@ -98,7 +99,8 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 
 			// If atlas, load as TextureAtlas
 			if (atlas != null) {
-				deps.add(new AssetDescriptor<TextureAtlas>(atlas.startsWith(rootPath) ? atlas : (rootPath + atlas), TextureAtlas.class));
+				deps.add(new AssetDescriptor<TextureAtlas>(atlas.startsWith(rootPath) ? atlas : (rootPath + atlas),
+						TextureAtlas.class));
 			}
 
 			for (SpriterFolder fo : data.folders) {
@@ -142,17 +144,13 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 		if (param != null && param.textureAtlas != null) {
 			return param.textureAtlas;
 		} else {
-
+			String baseName = file.nameWithoutExtension();
+			final String atlasName = baseName + ".atlas";
+			final String packName = baseName + ".pack";
 			FileHandle[] possibleAtlasFiles = resolve(rootFolder).list(new FilenameFilter() {
 				@Override
 				public boolean accept(File dir, String name) {
-					int dotIndex = name.lastIndexOf('.');
-					if (dotIndex != -1) {
-						String extension = name.substring(dotIndex + 1);
-						return extension.equalsIgnoreCase("atlas") || extension.equalsIgnoreCase("pack");
-					} else {
-						return false;
-					}
+					return name.equalsIgnoreCase(atlasName) || name.equalsIgnoreCase(packName);
 				}
 			});
 
@@ -185,9 +183,10 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 
 		/**
 		 * Optional texture atlas file. If a relative path is provided, it will
-		 * be relative to rootFolder. Defaults to searching first file with
-		 * .atlas extension in rootFolder and loading every texture individually
-		 * (ie not using atlas) if none is found.
+		 * be relative to rootFolder. Defaults to searching first file with same
+		 * name as Spriter file with .pack or .atlas extension in rootFolder and
+		 * loading every texture individually (ie not using atlas) if none is
+		 * found.
 		 */
 		public String textureAtlas = null;
 	}
