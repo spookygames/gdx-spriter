@@ -705,6 +705,24 @@ public class SpriterAnimator {
 			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime,
 					factor);
 		}
+
+		// Local postprocessing
+		for (SpriterObject info : frameData.spriteData) {
+			SpriterFileInfo fileInfo = info.file = applyCharacterMaps(info.file);
+
+			FrameData.applyParentTransform(info, spatial);
+
+			// Pivot points may be affected by character map
+			if (Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY)) {
+				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
+				info.pivotX = file.pivotX;
+				info.pivotY = file.pivotY;
+			}
+		}
+
+		for (SpriterSound info : frameData.sounds)
+			info.file = applyCharacterMaps(info.file);
+
 	}
 
 	/**
@@ -743,14 +761,11 @@ public class SpriterAnimator {
 	 *            Renderer to draw points and boxes, no render if null
 	 */
 	public void draw(Batch batch, ShapeRenderer renderer) {
-		for (SpriterObject info : frameData.spriteData) {
-			SpriterFileInfo file = applyCharacterMap(info.file);
-			preprocessObject(info, file);
-			drawObject(batch, assets.getSprite(file), info);
-		}
+		for (SpriterObject info : frameData.spriteData)
+			drawObject(batch, assets.getSprite(info.file), info);
 
 		for (SpriterSound info : frameData.sounds)
-			playSound(assets.getSound(applyCharacterMap(info.file)), info);
+			playSound(assets.getSound(info.file), info);
 
 		if (renderer != null)
 			drawDebug(renderer);
@@ -880,8 +895,8 @@ public class SpriterAnimator {
 			listener.onEventTriggered(this, eventName);
 	}
 
-	private SpriterFileInfo applyCharacterMap(SpriterFileInfo file) {
-		// Check values from character map
+	private SpriterFileInfo applyCharacterMaps(SpriterFileInfo file) {
+		// Check values from character maps
 		if (characterMaps.size > 0) {
 			for (int i = characterMaps.size - 1; i >= 0; i--) {
 				SpriterCharacterMap characterMap = characterMaps.get(i);
@@ -893,17 +908,5 @@ public class SpriterAnimator {
 		}
 
 		return file;
-	}
-
-	private void preprocessObject(SpriterObject object, SpriterFileInfo info) {
-		FrameData.applyParentTransform(object, spatial);
-
-		// Pivot points may be affected by character map
-		// Sort this out as late as we can
-		if (Float.isNaN(object.pivotX) || Float.isNaN(object.pivotY)) {
-			SpriterFile file = spriterData.folders.get(info.folderId).files.get(info.fileId);
-			object.pivotX = file.pivotX;
-			object.pivotY = file.pivotY;
-		}
 	}
 }
