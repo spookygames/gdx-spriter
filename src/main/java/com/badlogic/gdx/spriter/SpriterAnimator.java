@@ -713,7 +713,8 @@ public class SpriterAnimator {
 			FrameData.applyParentTransform(info, spatial);
 
 			// Pivot points may be affected by character map
-			if (Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY)) {
+			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY))
+					&& (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
 				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
 				info.pivotX = file.pivotX;
 				info.pivotY = file.pivotY;
@@ -761,11 +762,21 @@ public class SpriterAnimator {
 	 *            Renderer to draw points and boxes, no render if null
 	 */
 	public void draw(Batch batch, ShapeRenderer renderer) {
-		for (SpriterObject info : frameData.spriteData)
-			drawObject(batch, assets.getSprite(info.file), info);
+		for (SpriterObject info : frameData.spriteData) {
+			SpriterFileInfo file = info.file;
+			if(file.folderId >= 0 && file.fileId >= 0) {
+				// Negative id means "don't display"
+				drawObject(batch, assets.getSprite(file), info);
+			}
+		}
 
-		for (SpriterSound info : frameData.sounds)
-			playSound(assets.getSound(info.file), info);
+		for (SpriterSound info : frameData.sounds) {
+			SpriterFileInfo file = info.file;
+			if(file.folderId >= 0 && file.fileId >= 0) {
+				// Negative id means "don't display"
+				playSound(assets.getSound(file), info);
+			}
+		}
 
 		if (renderer != null)
 			drawDebug(renderer);
@@ -901,7 +912,7 @@ public class SpriterAnimator {
 			for (int i = characterMaps.size - 1; i >= 0; i--) {
 				SpriterCharacterMap characterMap = characterMaps.get(i);
 				for (SpriterMapInstruction map : characterMap.maps) {
-					if (map.file.equals(file) && map.target.folderId >= 0 && map.target.fileId >= 0)
+					if (map.file.equals(file))
 						return map.target;
 				}
 			}
