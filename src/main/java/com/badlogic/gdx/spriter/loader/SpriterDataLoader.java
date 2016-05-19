@@ -5,8 +5,6 @@
 
 package com.badlogic.gdx.spriter.loader;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 
 import com.badlogic.gdx.assets.AssetDescriptor;
@@ -145,21 +143,17 @@ public class SpriterDataLoader extends SynchronousAssetLoader<SpriterData, Sprit
 			return param.textureAtlas;
 		} else {
 			String baseName = file.nameWithoutExtension();
-			final String atlasName = baseName + ".atlas";
-			final String packName = baseName + ".pack";
-			FileHandle[] possibleAtlasFiles = resolve(rootFolder).list(new FilenameFilter() {
-				@Override
-				public boolean accept(File dir, String name) {
-					return name.equalsIgnoreCase(atlasName) || name.equalsIgnoreCase(packName);
-				}
-			});
-
-			if (possibleAtlasFiles.length == 0) {
+			String[] possibleAtlasNames = {
+					baseName + ".atlas",
+					baseName + ".pack"
+			};
+			for(int i = 0, n = possibleAtlasNames.length ; i < n ; i++) {
+				FileHandle possibleAtlasFile = resolve(rootFolder + possibleAtlasNames[i]);
+				if(possibleAtlasFile.exists())	// Atlas file found!
+					return possibleAtlasFile.path();
+			}
 				// No atlas file here
 				return null;
-			} else {
-				return possibleAtlasFiles[0].path();
-			}
 		}
 	}
 
