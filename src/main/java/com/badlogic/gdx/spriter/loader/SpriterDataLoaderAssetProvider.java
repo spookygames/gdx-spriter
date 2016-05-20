@@ -14,6 +14,7 @@ import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterData;
 import com.badlogic.gdx.spriter.data.SpriterFile;
 import com.badlogic.gdx.spriter.data.SpriterFileInfo;
+import com.badlogic.gdx.spriter.data.SpriterFileType;
 import com.badlogic.gdx.spriter.data.SpriterFolder;
 import com.badlogic.gdx.utils.ObjectMap;
 
@@ -88,7 +89,7 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 				SpriterFileInfo info = new SpriterFileInfo();
 				info.folderId = folder.id;
 				info.fileId = file.id;
-				String fileName = textureAtlas == null ? root + file.name : file.name.substring(0, file.name.lastIndexOf('.'));
+				String fileName = textureAtlas == null || file.type != SpriterFileType.Image ? root + file.name : file.name.substring(0, file.name.lastIndexOf('.'));
 				fileNames.put(info, fileName);
 			}
 		}
