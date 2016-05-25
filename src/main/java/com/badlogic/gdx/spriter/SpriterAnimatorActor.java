@@ -161,10 +161,13 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		float animationScaleY = animator.getScaleY();
 		float animationAngle = animator.getAngle();
 
-		animator.setX(getX() + imageX);
-		animator.setY(getY() + imageY);
-		animator.setScaleX(getScaleX() * imageWidth / getPrefWidth());
-		animator.setScaleY(getScaleY() * imageHeight / getPrefHeight());
+		float scaleX = getScaleX();
+		float scaleY = getScaleY();
+		
+		animator.setX(getX() + imageX * scaleX);
+		animator.setY(getY() + imageY * scaleY);
+		animator.setScaleX(scaleX * imageWidth / getPrefWidth());
+		animator.setScaleY(scaleY * imageHeight / getPrefHeight());
 		animator.setAngle(getRotation());
 
 		// Update here again to take offsets into account
@@ -196,10 +199,13 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		float animationScaleY = animator.getScaleY();
 		float animationAngle = animator.getAngle();
 
-		animator.setX(getX() + imageX);
-		animator.setY(getY() + imageY);
-		animator.setScaleX(getScaleX() * imageWidth / getPrefWidth());
-		animator.setScaleY(getScaleY() * imageHeight / getPrefHeight());
+		float scaleX = getScaleX();
+		float scaleY = getScaleY();
+
+		animator.setX(getX() + imageX * scaleX);
+		animator.setY(getY() + imageY * scaleY);
+		animator.setScaleX(scaleX * imageWidth / getPrefWidth());
+		animator.setScaleY(scaleY * imageHeight / getPrefHeight());
 		animator.setAngle(getRotation());
 		
 		// Update here again to take offsets into account
