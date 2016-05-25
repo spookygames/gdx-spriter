@@ -41,4 +41,17 @@ public interface SpriterAnimationListener {
 	 */
 	public void onEventTriggered(SpriterAnimator animator, String event);
 
+	/**
+	 * Triggered once the current {@link SpriterAnimation} played by a
+	 * {@link SpriterAnimator} is changed.
+	 * 
+	 * @param animator
+	 *            Animator playing the animation
+	 * @param formerAnimation
+	 *            Animation previously being played (may be null)
+	 * @param newAnimation
+	 *            Next animation to play (may be null)
+	 */
+	public void onAnimationChanged(SpriterAnimator animator, SpriterAnimation formerAnimation, SpriterAnimation newAnimation);
+
 }
