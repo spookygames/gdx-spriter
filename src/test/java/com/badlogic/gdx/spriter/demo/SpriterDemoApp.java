@@ -29,10 +29,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.Dialog;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.List;
+import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
-import com.badlogic.gdx.scenes.scene2d.ui.Stack;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
@@ -41,6 +41,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameData;
 import com.badlogic.gdx.spriter.SpriterAnimationListener;
 import com.badlogic.gdx.spriter.SpriterAnimator;
+import com.badlogic.gdx.spriter.SpriterAnimatorActor;
 import com.badlogic.gdx.spriter.SpriterTestData;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
@@ -70,8 +71,6 @@ public class SpriterDemoApp implements ApplicationListener {
 	SelectBox<String> animationChooser;
 	List<SpriterCharacterMap> charmapChooser;
 
-	SpriterDemoAnimatorSlider positionXSlider;
-	SpriterDemoAnimatorSlider positionYSlider;
 	SpriterDemoAnimatorSlider angleSlider;
 	SpriterDemoAnimatorSlider pivotXSlider;
 	SpriterDemoAnimatorSlider pivotYSlider;
@@ -210,30 +209,12 @@ public class SpriterDemoApp implements ApplicationListener {
 			}
 		});
 
-		positionXSlider = new SpriterDemoAnimatorSlider(0f, 1000f, 1f, skin) {
-			@Override public void setValue(SpriterAnimator animator, float value) {
-				animator.setX(value);
-			}
-			@Override protected float getValue(SpriterAnimator animator) {
-				return animator.getX();
-			}
-		};
-
-		positionYSlider = new SpriterDemoAnimatorSlider(0f, 1000f, 1f, skin) {
-			@Override public void setValue(SpriterAnimator animator, float value) {
-				animator.setY(value);
-			}
-			@Override protected float getValue(SpriterAnimator animator) {
-				return animator.getY();
-			}
-		};
-
 		angleSlider = new SpriterDemoAnimatorSlider(0, 360, 1f, skin, "%.0f") {
 			@Override public void setValue(SpriterAnimator animator, float value) {
-				animator.setAngle(value);
+				spriterAnimator.setRotation(value);
 			}
 			@Override protected float getValue(SpriterAnimator animator) {
-				return animator.getAngle();
+				return spriterAnimator.getRotation();
 			}
 		};
 
@@ -257,19 +238,19 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		scaleXSlider = new SpriterDemoAnimatorSlider(-10f, 10f, 0.1f, skin) {
 			@Override public void setValue(SpriterAnimator animator, float value) {
-				animator.setScaleX(value);
+				spriterAnimator.setScaleX(value);
 			}
 			@Override protected float getValue(SpriterAnimator animator) {
-				return animator.getScaleX();
+				return spriterAnimator.getScaleX();
 			}
 		};
 
 		scaleYSlider = new SpriterDemoAnimatorSlider(-10f, 10f, 0.1f, skin) {
 			@Override public void setValue(SpriterAnimator animator, float value) {
-				animator.setScaleY(value);
+				spriterAnimator.setScaleY(value);
 			}
 			@Override protected float getValue(SpriterAnimator animator) {
-				return animator.getScaleY();
+				return spriterAnimator.getScaleY();
 			}
 		};
 
@@ -292,8 +273,6 @@ public class SpriterDemoApp implements ApplicationListener {
 		};
 
 		allAnimatorSliders = new SpriterDemoAnimatorSlider[]{
-				positionXSlider,
-				positionYSlider,
 				scaleXSlider,
 				scaleYSlider,
 				pivotXSlider,
@@ -309,7 +288,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		spriterPlaceholder = new Label("No animator", skin);
 		spriterPlaceholder.setAlignment(Align.center);
-
+		
 		spriterAnimator = new SpriterAnimatorActor(animator);
 		spriterAnimator.debug();
 
@@ -355,6 +334,8 @@ public class SpriterDemoApp implements ApplicationListener {
 		animationsTable.row();
 		animationsTable.add(animationChooser).expand().fill();
 		animationsTable.add(transitionCheckbox).fillX().padLeft(2f);
+		
+		ScrollPane scrollableCharmapChooser = new ScrollPane(charmapChooser);
 
 		Table menuTable = new Table(skin);
 		menuTable.defaults().pad(3f).expandX().fillX();
@@ -371,13 +352,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		menuTable.add(animationsTable).pad(4f);
 		menuTable.row();
 		menuTable.add("Maps");
-		menuTable.add(charmapChooser).pad(4f);
-		menuTable.row();
-		menuTable.add("Position X");
-		menuTable.add(positionXSlider);
-		menuTable.row();
-		menuTable.add("Position Y");
-		menuTable.add(positionYSlider);
+		menuTable.add(scrollableCharmapChooser).pad(4f);
 		menuTable.row();
 		menuTable.add("Angle");
 		menuTable.add(angleSlider);
@@ -402,10 +377,11 @@ public class SpriterDemoApp implements ApplicationListener {
 		menuTable.row();
 		menuTable.add().expandY();
 
-		Stack contentStack = new Stack();
-		contentStack.add(spriterPlaceholder);
-		contentStack.add(metaLabel);
-		contentStack.add(spriterAnimator);
+		Table contentTable = new Table(skin);
+		contentTable.row();
+		contentTable.add(metaLabel).left().expandX().maxHeight(1f);
+		contentTable.row();
+		contentTable.stack(spriterPlaceholder, spriterAnimator).expand();
 
 		Table timelineTable = new Table(skin);
 		timelineTable.row();
@@ -423,7 +399,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		rootTable.setFillParent(true);
 		rootTable.row();
 		rootTable.add(menuTable).expandY().fill();
-		rootTable.add(contentStack).expand().fill();
+		rootTable.add(contentTable).expand().fill();
 		rootTable.row();
 		rootTable.add(controlTable).colspan(2).expandX().fillX();
 
@@ -432,8 +408,6 @@ public class SpriterDemoApp implements ApplicationListener {
 		// Bring input processing to the party
 
 		InputProcessor globalInput = new InputProcessor() {
-			int firstX, firstY;
-
 			@Override
 			public boolean keyDown(int keycode) {
 				switch (keycode) {
@@ -467,9 +441,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 			@Override
 			public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-				firstX = screenX;
-				firstY = screenY;
-				return true;
+				return false;
 			}
 
 			@Override
@@ -479,13 +451,7 @@ public class SpriterDemoApp implements ApplicationListener {
 
 			@Override
 			public boolean touchDragged(int screenX, int screenY, int pointer) {
-				int x = screenX - firstX;
-				int y = screenY - firstY;
-				positionXSlider.setValue(positionXSlider.getValue() + x);
-				positionYSlider.setValue(positionYSlider.getValue() - y);
-				firstX = screenX;
-				firstY = screenY;
-				return true;
+				return false;
 			}
 
 			@Override
@@ -582,6 +548,11 @@ public class SpriterDemoApp implements ApplicationListener {
 					if (!animation.looping)
 						animator.play(animation);
 				}
+
+				@Override
+				public void onAnimationChanged(SpriterAnimator animator, SpriterAnimation formerAnimation, SpriterAnimation newAnimation) {
+					// Not handled here
+				}
 			});
 
 			animators.add(animator);
@@ -621,14 +592,6 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		for(SpriterDemoAnimatorSlider slider : allAnimatorSliders)
 			slider.update(animator);
-
-		float x = spriterAnimator.getWidth() / 2f;
-		if(x == 0f) x = Gdx.graphics.getWidth() / 3f;
-		float y = spriterAnimator.getHeight() / 3f;
-		if(y == 0f) y = Gdx.graphics.getHeight() / 4f;
-
-		positionXSlider.setValue(x);
-		positionYSlider.setValue(y);
 	}
 
 	private void changeAnimation(String anim) {
@@ -711,9 +674,6 @@ public class SpriterDemoApp implements ApplicationListener {
 
 		// Draw stage
 		stage.draw();
-
-		positionXSlider.setRange(0, spriterAnimator.getWidth());
-		positionYSlider.setRange(0, spriterAnimator.getHeight());
 	}
 
 	@Override
@@ -740,7 +700,7 @@ public class SpriterDemoApp implements ApplicationListener {
 		assetManager.dispose();
 	}
 
-	private abstract class SpriterDemoAnimatorSlider extends Table {
+	abstract class SpriterDemoAnimatorSlider extends Table {
 		private final Slider slider;
 		private final ChangeListener listener;
 		private final Label valueLabel;

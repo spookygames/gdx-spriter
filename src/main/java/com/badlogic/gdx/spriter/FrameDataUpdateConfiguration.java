@@ -48,8 +48,7 @@ public class FrameDataUpdateConfiguration {
 
 	@Override
 	public String toString() {
-		return "FrameDataUpdateConfiguration [spatial=" + this.spatial + ", tagsAndVariables=" + this.tagsAndVariables
-				+ ", events=" + this.events + ", sounds=" + this.sounds + "]";
+		return "FrameDataUpdateConfiguration [spatial=" + this.spatial + ", tagsAndVariables=" + this.tagsAndVariables + ", events=" + this.events + ", sounds=" + this.sounds + "]";
 	}
 
 }

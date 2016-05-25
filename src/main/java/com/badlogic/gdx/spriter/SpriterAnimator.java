@@ -9,6 +9,7 @@ import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
 import com.badlogic.gdx.spriter.data.SpriterAssetProvider;
 import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
@@ -71,6 +72,7 @@ public class SpriterAnimator {
 
 	private final FrameDataUpdateConfiguration frameUpdateConfiguration = new FrameDataUpdateConfiguration();
 	private final FrameData frameData = new FrameData();
+	private final Rectangle boundingBox = new Rectangle();
 
 	/**
 	 * Initialize a new {@code SpriterAnimator} with given {@link SpriterEntity}
@@ -572,7 +574,11 @@ public class SpriterAnimator {
 	public void play(SpriterAnimation animation) {
 		time = 0;
 
+		SpriterAnimation former = currentAnimation;
 		currentAnimation = animation;
+		
+		for (int i = 0, n = listeners.size ; i < n ; i++)
+			listeners.get(i).onAnimationChanged(this, former, animation);
 
 		nextAnimation = null;
 	}
@@ -685,8 +691,8 @@ public class SpriterAnimator {
 			else
 				time = 0.0f;
 
-			for (SpriterAnimationListener listener : listeners)
-				listener.onAnimationFinished(this, currentAnimation);
+			for (int i = 0, n = listeners.size ; i < n ; i++)
+				listeners.get(i).onAnimationFinished(this, currentAnimation);
 
 		} else if (time >= currentAnimation.length) {
 
@@ -695,35 +701,18 @@ public class SpriterAnimator {
 			else
 				time = currentAnimation.length;
 
-			for (SpriterAnimationListener listener : listeners)
-				listener.onAnimationFinished(this, currentAnimation);
+			for (int i = 0, n = listeners.size ; i < n ; i++)
+				listeners.get(i).onAnimationFinished(this, currentAnimation);
 		}
 
 		if (nextAnimation == null) {
 			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, time, deltaTime);
 		} else {
-			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime,
-					factor);
+			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime, factor);
 		}
 
 		// Local postprocessing
-		for (SpriterObject info : frameData.spriteData) {
-			SpriterFileInfo fileInfo = info.file = applyCharacterMaps(info.file);
-
-			FrameData.applyParentTransform(info, spatial);
-
-			// Pivot points may be affected by character map
-			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY))
-					&& (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
-				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
-				info.pivotX = file.pivotX;
-				info.pivotY = file.pivotY;
-			}
-		}
-
-		for (SpriterSound info : frameData.sounds)
-			info.file = applyCharacterMaps(info.file);
-
+		postProcess(frameData);
 	}
 
 	/**
@@ -764,7 +753,7 @@ public class SpriterAnimator {
 	public void draw(Batch batch, ShapeRenderer renderer) {
 		for (SpriterObject info : frameData.spriteData) {
 			SpriterFileInfo file = info.file;
-			if(file.folderId >= 0 && file.fileId >= 0) {
+			if (file.folderId >= 0 && file.fileId >= 0) {
 				// Negative id means "don't display"
 				drawObject(batch, assets.getSprite(file), info);
 			}
@@ -772,7 +761,7 @@ public class SpriterAnimator {
 
 		for (SpriterSound info : frameData.sounds) {
 			SpriterFileInfo file = info.file;
-			if(file.folderId >= 0 && file.fileId >= 0) {
+			if (file.folderId >= 0 && file.fileId >= 0) {
 				// Negative id means "don't display"
 				playSound(assets.getSound(file), info);
 			}
@@ -902,8 +891,59 @@ public class SpriterAnimator {
 	 *            Event to dispatch
 	 */
 	protected void dispatchEvent(String eventName) {
-		for (SpriterAnimationListener listener : listeners)
-			listener.onEventTriggered(this, eventName);
+		for (int i = 0, n = listeners.size ; i < n ; i++)
+			listeners.get(i).onEventTriggered(this, eventName);
+	}
+
+	Rectangle computeBoundingBox() {
+		boolean firstItem = true;
+
+		for (SpriterObject info : frameData.spriteData) {
+			SpriterFileInfo file = info.file;
+
+			// Negative id means "don't display"
+			if (file.folderId >= 0 && file.fileId >= 0) {
+				Sprite sprite = assets.getSprite(file);
+
+				float originX = sprite.getWidth() * info.pivotX;
+				float originY = sprite.getHeight() * info.pivotY;
+
+				sprite.setOrigin(originX, originY);
+				sprite.setScale(info.scaleX, info.scaleY);
+				sprite.setRotation(info.angle);
+				sprite.setPosition(info.x - originX - this.pivotX, info.y - originY - this.pivotY);
+
+				Rectangle localBoundingBox = sprite.getBoundingRectangle();
+
+				if (firstItem) {
+					boundingBox.set(localBoundingBox);
+					firstItem = false;
+				} else {
+					boundingBox.merge(localBoundingBox);
+				}
+			}
+		}
+		return boundingBox;
+	}
+
+	private void postProcess(FrameData frameData) {
+
+		for (SpriterObject info : frameData.spriteData) {
+			SpriterFileInfo fileInfo = info.file = applyCharacterMaps(info.file);
+
+			FrameData.applyParentTransform(info, spatial);
+
+			// Pivot points may be affected by character map
+			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY)) && (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
+				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
+				info.pivotX = file.pivotX;
+				info.pivotY = file.pivotY;
+			}
+
+		}
+
+		for (SpriterSound info : frameData.sounds)
+			info.file = applyCharacterMaps(info.file);
 	}
 
 	private SpriterFileInfo applyCharacterMaps(SpriterFileInfo file) {
