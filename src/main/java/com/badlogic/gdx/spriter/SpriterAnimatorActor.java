@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Widget;
 import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.Disableable;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 import com.badlogic.gdx.utils.Scaling;
 
 public class SpriterAnimatorActor extends Widget implements Disableable, SpriterAnimationListener {
@@ -228,5 +229,13 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		invalidate();
 		this.animator.update(0f);
 		if (oldPrefWidth != getPrefWidth()) invalidateHierarchy();
+	}
+
+	@Override
+	public void onCharacterMapAdded(SpriterAnimator animator, SpriterCharacterMap characterMap) {
+	}
+
+	@Override
+	public void onCharacterMapRemoved(SpriterAnimator animator, SpriterCharacterMap characterMap) {
 	}
 }

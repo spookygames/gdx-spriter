@@ -187,6 +187,9 @@ public class SpriterAnimator {
 		if (characterMap == null || this.characterMaps.contains(characterMap, true))
 			return;
 		this.characterMaps.add(characterMap);
+		
+		for (int i = 0, n = listeners.size ; i < n ; i++)
+			listeners.get(i).onCharacterMapAdded(this, characterMap);
 	}
 
 	/**
@@ -213,7 +216,13 @@ public class SpriterAnimator {
 	 * @return True if the map was effectively removed, false otherwise.
 	 */
 	public boolean removeCharacterMap(SpriterCharacterMap characterMap) {
-		return this.characterMaps.removeValue(characterMap, true);
+		if(this.characterMaps.removeValue(characterMap, true)) {
+			for (int i = 0, n = listeners.size ; i < n ; i++)
+				listeners.get(i).onCharacterMapRemoved(this, characterMap);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -221,7 +230,11 @@ public class SpriterAnimator {
 	 * .
 	 */
 	public void clearCharacterMaps() {
-		this.characterMaps.clear();
+		while(characterMaps.size > 0) {
+			SpriterCharacterMap removed = characterMaps.pop();
+			for (int i = characterMaps.size - 1 ; i >= 0 ; i--)
+				listeners.get(i).onCharacterMapRemoved(this, removed);
+		}
 	}
 
 	/**

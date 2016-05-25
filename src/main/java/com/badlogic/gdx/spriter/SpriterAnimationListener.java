@@ -8,11 +8,10 @@ package com.badlogic.gdx.spriter;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.spriter.data.SpriterAnimation;
+import com.badlogic.gdx.spriter.data.SpriterCharacterMap;
 
 /**
- * Interface for listening to Spriter animation completion and events.
- * 
- * @see SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)
+ * Interface for listening to various Spriter animator events.
  * 
  * @author thorthur
  * 
@@ -27,6 +26,7 @@ public interface SpriterAnimationListener {
 	 *            Animator playing the animation
 	 * @param animation
 	 *            Animation reaching its end
+	 * @see SpriterAnimator#update(float)
 	 */
 	public void onAnimationFinished(SpriterAnimator animator, SpriterAnimation animation);
 
@@ -38,6 +38,7 @@ public interface SpriterAnimationListener {
 	 *            Animator playing the animation
 	 * @param event
 	 *            Event happening
+	 * @see SpriterAnimator#draw(Batch batch, ShapeRenderer renderer)
 	 */
 	public void onEventTriggered(SpriterAnimator animator, String event);
 
@@ -51,7 +52,33 @@ public interface SpriterAnimationListener {
 	 *            Animation previously being played (may be null)
 	 * @param newAnimation
 	 *            Next animation to play (may be null)
+	 * @see SpriterAnimator#play(SpriterAnimation)
 	 */
-	public void onAnimationChanged(SpriterAnimator animator, SpriterAnimation formerAnimation, SpriterAnimation newAnimation);
+	public void onAnimationChanged(SpriterAnimator animator, SpriterAnimation formerAnimation,
+			SpriterAnimation newAnimation);
+
+	/**
+	 * Triggered once a {@link SpriterCharacterMap} is added to a
+	 * {@link SpriterAnimator}.
+	 * 
+	 * @param animator
+	 *            Animator subject to the change
+	 * @param characterMap
+	 *            Character map added
+	 * @see SpriterAnimator#addCharacterMap(SpriterCharacterMap)
+	 */
+	public void onCharacterMapAdded(SpriterAnimator animator, SpriterCharacterMap characterMap);
+
+	/**
+	 * Triggered once a {@link SpriterCharacterMap} is removed from a
+	 * {@link SpriterAnimator}.
+	 * 
+	 * @param animator
+	 *            Animator subject to the change
+	 * @param characterMap
+	 *            Character map removed
+	 * @see SpriterAnimator#removeCharacterMap(SpriterCharacterMap)
+	 */
+	public void onCharacterMapRemoved(SpriterAnimator animator, SpriterCharacterMap characterMap);
 
 }

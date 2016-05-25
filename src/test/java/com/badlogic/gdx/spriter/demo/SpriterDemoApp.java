@@ -39,7 +39,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ArraySelection;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.spriter.FrameData;
-import com.badlogic.gdx.spriter.SpriterAnimationListener;
+import com.badlogic.gdx.spriter.SpriterAnimationAdapter;
 import com.badlogic.gdx.spriter.SpriterAnimator;
 import com.badlogic.gdx.spriter.SpriterAnimatorActor;
 import com.badlogic.gdx.spriter.SpriterTestData;
@@ -537,7 +537,7 @@ public class SpriterDemoApp implements ApplicationListener {
 					return entity.id + ": " + entity.name;
 				}
 			};
-			animator.addAnimationListener(new SpriterAnimationListener() {
+			animator.addAnimationListener(new SpriterAnimationAdapter() {
 				@Override
 				public void onEventTriggered(SpriterAnimator animator, String eventName) {
 					popup("SpriterEvent", eventName);
@@ -547,11 +547,6 @@ public class SpriterDemoApp implements ApplicationListener {
 				public void onAnimationFinished(SpriterAnimator animator, SpriterAnimation animation) {
 					if (!animation.looping)
 						animator.play(animation);
-				}
-
-				@Override
-				public void onAnimationChanged(SpriterAnimator animator, SpriterAnimation formerAnimation, SpriterAnimation newAnimation) {
-					// Not handled here
 				}
 			});
 
