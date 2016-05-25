@@ -130,19 +130,22 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		imageWidth = size.x;
 		imageHeight = size.y;
 
+		float xOffset = bounds.x * imageWidth / prefWidth;
+		float yOffset = bounds.y * imageHeight / prefHeight;
+
 		if ((align & Align.left) != 0)
-			imageX = bounds.x;
+			imageX = xOffset;
 		else if ((align & Align.right) != 0)
-			imageX = width - bounds.width - bounds.x;
+			imageX = width - imageWidth - xOffset;
 		else
-			imageX = width / 2 - bounds.x - bounds.width / 2;
+			imageX = width / 2 - xOffset - imageWidth / 2;
 
 		if ((align & Align.top) != 0)
-			imageY = height - bounds.height - bounds.y;
+			imageY = height - imageHeight - yOffset;
 		else if ((align & Align.bottom) != 0)
-			imageY = bounds.y;
+			imageY = yOffset;
 		else
-			imageY = height / 2 - bounds.y - bounds.height / 2;
+			imageY = height / 2 - yOffset - imageHeight / 2;
 	}
 
 	@Override
@@ -161,17 +164,16 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		float animationScaleY = animator.getScaleY();
 		float animationAngle = animator.getAngle();
 
-		float scaleX = getScaleX();
-		float scaleY = getScaleY();
-		
-		animator.setX(getX() + imageX * scaleX);
-		animator.setY(getY() + imageY * scaleY);
-		animator.setScaleX(scaleX * imageWidth / getPrefWidth());
-		animator.setScaleY(scaleY * imageHeight / getPrefHeight());
+		animator.setX(getX() + imageX);
+		animator.setY(getY() + imageY);
+		animator.setScaleX(getScaleX() * imageWidth / getPrefWidth());
+		animator.setScaleY(getScaleY() * imageHeight / getPrefHeight());
 		animator.setAngle(getRotation());
 
 		// Update here again to take offsets into account
 		animator.update(0f);
+		
+		// Draw animator
 		animator.draw(batch);
 
 		animator.setX(animationX);
@@ -199,13 +201,10 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 		float animationScaleY = animator.getScaleY();
 		float animationAngle = animator.getAngle();
 
-		float scaleX = getScaleX();
-		float scaleY = getScaleY();
-
-		animator.setX(getX() + imageX * scaleX);
-		animator.setY(getY() + imageY * scaleY);
-		animator.setScaleX(scaleX * imageWidth / getPrefWidth());
-		animator.setScaleY(scaleY * imageHeight / getPrefHeight());
+		animator.setX(getX() + imageX);
+		animator.setY(getY() + imageY);
+		animator.setScaleX(getScaleX() * imageWidth / getPrefWidth());
+		animator.setScaleY(getScaleY() * imageHeight / getPrefHeight());
 		animator.setAngle(getRotation());
 		
 		// Update here again to take offsets into account
@@ -213,6 +212,8 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 
 		// Draw position
 		renderer.circle(animator.getX(), animator.getY(), 1f);
+		
+		// Draw points and boxes
 		animator.drawDebug(renderer);
 
 		animator.setX(animationX);
