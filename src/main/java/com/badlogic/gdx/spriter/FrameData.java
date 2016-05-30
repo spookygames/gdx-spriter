@@ -252,12 +252,12 @@ public class FrameData {
 	 * {@link SpriterAnimator#drawDebug(ShapeRenderer renderer)} is issued. They
 	 * may however be used for other purposes like collision detection.
 	 */
-	public final Array<SpriterObject> pointData = new Array<SpriterObject>();
+	public final ObjectMap<String, SpriterObject> pointData = new ObjectMap<String, SpriterObject>();
 
 	/**
 	 * Frame data related to boxes.
 	 * 
-	 * box data are only displayed if a call to
+	 * Box data are only displayed if a call to
 	 * {@link SpriterAnimator#drawDebug(ShapeRenderer renderer)} is issued. They
 	 * may however be used for other purposes like collision detection.
 	 */
@@ -480,7 +480,7 @@ public class FrameData {
 			this.spriteData.addAll(tempData.spriteData);
 			break;
 		case Point:
-			this.pointData.add(info);
+			this.pointData.put(timeline.name, info);
 			break;
 		case Box:
 			this.boxData.put(timeline.objectId, info);

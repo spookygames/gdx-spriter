@@ -23,7 +23,7 @@ import com.badlogic.gdx.spriter.data.SpriterObjectInfo;
 import com.badlogic.gdx.spriter.data.SpriterSound;
 import com.badlogic.gdx.spriter.data.SpriterSpatial;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.IntMap.Entry;
+import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectMap;
 
 /**
@@ -799,10 +799,10 @@ public class SpriterAnimator {
 	 *            Renderer to draw points and boxes
 	 */
 	public void drawDebug(ShapeRenderer renderer) {
-		for (SpriterObject info : frameData.pointData)
-			drawPoint(renderer, info);
+		for (ObjectMap.Entry<String, SpriterObject> entry : frameData.pointData)
+			drawPoint(renderer, entry.key, entry.value);
 
-		for (Entry<SpriterObject> entry : frameData.boxData)
+		for (IntMap.Entry<SpriterObject> entry : frameData.boxData)
 			drawBox(renderer, entity.objectInfos.get(entry.key), entry.value);
 	}
 
@@ -864,10 +864,12 @@ public class SpriterAnimator {
 	 * 
 	 * @param shapeRenderer
 	 *            Renderer to display the point
+	 * @param timelineName
+	 *            Name of the associated timeline
 	 * @param info
 	 *            Point object
 	 */
-	protected void drawPoint(ShapeRenderer shapeRenderer, SpriterObject info) {
+	protected void drawPoint(ShapeRenderer shapeRenderer, String timelineName, SpriterObject info) {
 		float x = this.spatial.x + info.x - this.pivotX;
 		float y = this.spatial.y + info.y - this.pivotY;
 		float radius = Math.max(info.scaleX * this.spatial.scaleX, info.scaleY * this.spatial.scaleY);
