@@ -25,6 +25,7 @@ import com.badlogic.gdx.spriter.data.SpriterSpatial;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.IntMap;
 import com.badlogic.gdx.utils.ObjectMap;
+import com.badlogic.gdx.utils.SnapshotArray;
 
 /**
  * The {@code SpriterAnimator} class is a central piece of gdx-spriter as it
@@ -56,7 +57,7 @@ public class SpriterAnimator {
 	private SpriterAnimation currentAnimation = null;
 	private SpriterAnimation nextAnimation = null;
 	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>(true, 12);
-	private final Array<SpriterAnimationListener> listeners = new Array<SpriterAnimationListener>(true, 12);
+	private final SnapshotArray<SpriterAnimationListener> listeners = new SnapshotArray<SpriterAnimationListener>(true, 12, SpriterAnimationListener.class);
 
 	// This one will be used for all things geometric
 	private final SpriterSpatial spatial = new SpriterSpatial();
@@ -188,8 +189,10 @@ public class SpriterAnimator {
 			return;
 		this.characterMaps.add(characterMap);
 		
+		SpriterAnimationListener[] items = listeners.begin();
 		for (int i = 0, n = listeners.size ; i < n ; i++)
-			listeners.get(i).onCharacterMapAdded(this, characterMap);
+			items[i].onCharacterMapAdded(this, characterMap);
+		listeners.end();
 	}
 
 	/**
@@ -217,8 +220,10 @@ public class SpriterAnimator {
 	 */
 	public boolean removeCharacterMap(SpriterCharacterMap characterMap) {
 		if(this.characterMaps.removeValue(characterMap, true)) {
+			SpriterAnimationListener[] items = listeners.begin();
 			for (int i = 0, n = listeners.size ; i < n ; i++)
-				listeners.get(i).onCharacterMapRemoved(this, characterMap);
+				items[i].onCharacterMapRemoved(this, characterMap);
+			listeners.end();
 			return true;
 		} else {
 			return false;
@@ -232,8 +237,10 @@ public class SpriterAnimator {
 	public void clearCharacterMaps() {
 		while(characterMaps.size > 0) {
 			SpriterCharacterMap removed = characterMaps.pop();
-			for (int i = characterMaps.size - 1 ; i >= 0 ; i--)
-				listeners.get(i).onCharacterMapRemoved(this, removed);
+			SpriterAnimationListener[] items = listeners.begin();
+			for (int i = 0, n = listeners.size ; i < n ; i++)
+				items[i].onCharacterMapRemoved(this, removed);
+			listeners.end();
 		}
 	}
 
@@ -590,8 +597,10 @@ public class SpriterAnimator {
 		SpriterAnimation former = currentAnimation;
 		currentAnimation = animation;
 		
+		SpriterAnimationListener[] items = listeners.begin();
 		for (int i = 0, n = listeners.size ; i < n ; i++)
-			listeners.get(i).onAnimationChanged(this, former, animation);
+			items[i].onAnimationChanged(this, former, animation);
+		listeners.end();
 
 		nextAnimation = null;
 	}
@@ -682,9 +691,10 @@ public class SpriterAnimator {
 
 		deltaTime *= 1000f; // We're talking milliseconds here
 		float elapsed = deltaTime * speed;
+		float length = currentAnimation.length;
 
 		if (nextAnimation != null && totalTransitionTime != 0.0f) {
-			elapsed += elapsed * factor * currentAnimation.length / nextAnimation.length;
+			elapsed += elapsed * factor * length / nextAnimation.length;
 
 			transitionTime += Math.abs(elapsed);
 			factor = transitionTime / totalTransitionTime;
@@ -700,22 +710,26 @@ public class SpriterAnimator {
 
 		if (time < 0.0f) {
 			if (currentAnimation.looping)
-				time += currentAnimation.length;
+				time += length;
 			else
 				time = 0.0f;
 
+			SpriterAnimationListener[] items = listeners.begin();
 			for (int i = 0, n = listeners.size ; i < n ; i++)
-				listeners.get(i).onAnimationFinished(this, currentAnimation);
+				items[i].onAnimationFinished(this, currentAnimation);
+			listeners.end();
 
-		} else if (time >= currentAnimation.length) {
+		} else if (time >= length) {
 
 			if (currentAnimation.looping)
-				time -= currentAnimation.length;
+				time -= length;
 			else
-				time = currentAnimation.length;
+				time = length;
 
+			SpriterAnimationListener[] items = listeners.begin();
 			for (int i = 0, n = listeners.size ; i < n ; i++)
-				listeners.get(i).onAnimationFinished(this, currentAnimation);
+				items[i].onAnimationFinished(this, currentAnimation);
+			listeners.end();
 		}
 
 		if (nextAnimation == null) {
@@ -906,8 +920,10 @@ public class SpriterAnimator {
 	 *            Event to dispatch
 	 */
 	protected void dispatchEvent(String eventName) {
+		SpriterAnimationListener[] items = listeners.begin();
 		for (int i = 0, n = listeners.size ; i < n ; i++)
-			listeners.get(i).onEventTriggered(this, eventName);
+			items[i].onEventTriggered(this, eventName);
+		listeners.end();
 	}
 
 	Rectangle computeBoundingBox() {
