@@ -201,7 +201,7 @@ public class FrameData {
 	 * @param deltaTime
 	 *            Current delta time (Gdx delta time)
 	 * @param parentInfo
-	 *            Spatial information that act as reference for animation
+	 *            Spatial information that acts as reference for animation
 	 */
 	static void update(FrameData frameData, FrameDataUpdateConfiguration configuration, SpriterAnimation animation, float targetTime, float deltaTime, SpriterSpatial parentInfo) {
 
