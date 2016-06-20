@@ -119,7 +119,7 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 			return;
 
 		// Compute bounding box
-		Rectangle bounds = animator.computeBoundingBox();
+		Rectangle bounds = animator.getBoundingBox();
 		
 		prefWidth = bounds.width;
 		prefHeight = bounds.height;

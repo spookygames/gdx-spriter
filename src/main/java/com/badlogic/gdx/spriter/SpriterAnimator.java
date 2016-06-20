@@ -6,6 +6,7 @@
 package com.badlogic.gdx.spriter;
 
 import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -57,7 +58,8 @@ public class SpriterAnimator {
 	private SpriterAnimation currentAnimation = null;
 	private SpriterAnimation nextAnimation = null;
 	private final Array<SpriterCharacterMap> characterMaps = new Array<SpriterCharacterMap>(true, 12);
-	private final SnapshotArray<SpriterAnimationListener> listeners = new SnapshotArray<SpriterAnimationListener>(true, 12, SpriterAnimationListener.class);
+	private final SnapshotArray<SpriterAnimationListener> listeners = new SnapshotArray<SpriterAnimationListener>(true,
+			12, SpriterAnimationListener.class);
 
 	// This one will be used for all things geometric
 	private final SpriterSpatial spatial = new SpriterSpatial();
@@ -73,7 +75,9 @@ public class SpriterAnimator {
 
 	private final FrameDataUpdateConfiguration frameUpdateConfiguration = new FrameDataUpdateConfiguration();
 	private final FrameData frameData = new FrameData();
+
 	private final Rectangle boundingBox = new Rectangle();
+	private boolean dirtyBoundingBox = true;
 
 	/**
 	 * Initialize a new {@code SpriterAnimator} with given {@link SpriterEntity}
@@ -188,9 +192,9 @@ public class SpriterAnimator {
 		if (characterMap == null || this.characterMaps.contains(characterMap, true))
 			return;
 		this.characterMaps.add(characterMap);
-		
+
 		SpriterAnimationListener[] items = listeners.begin();
-		for (int i = 0, n = listeners.size ; i < n ; i++)
+		for (int i = 0, n = listeners.size; i < n; i++)
 			items[i].onCharacterMapAdded(this, characterMap);
 		listeners.end();
 	}
@@ -219,9 +223,9 @@ public class SpriterAnimator {
 	 * @return True if the map was effectively removed, false otherwise.
 	 */
 	public boolean removeCharacterMap(SpriterCharacterMap characterMap) {
-		if(this.characterMaps.removeValue(characterMap, true)) {
+		if (this.characterMaps.removeValue(characterMap, true)) {
 			SpriterAnimationListener[] items = listeners.begin();
-			for (int i = 0, n = listeners.size ; i < n ; i++)
+			for (int i = 0, n = listeners.size; i < n; i++)
 				items[i].onCharacterMapRemoved(this, characterMap);
 			listeners.end();
 			return true;
@@ -235,10 +239,10 @@ public class SpriterAnimator {
 	 * .
 	 */
 	public void clearCharacterMaps() {
-		while(characterMaps.size > 0) {
+		while (characterMaps.size > 0) {
 			SpriterCharacterMap removed = characterMaps.pop();
 			SpriterAnimationListener[] items = listeners.begin();
-			for (int i = 0, n = listeners.size ; i < n ; i++)
+			for (int i = 0, n = listeners.size; i < n; i++)
 				items[i].onCharacterMapRemoved(this, removed);
 			listeners.end();
 		}
@@ -573,6 +577,19 @@ public class SpriterAnimator {
 	}
 
 	/**
+	 * Get current bounding {@link Rectangle} of this {@link SpriterAnimator}.
+	 * 
+	 * @return Current bounding box
+	 */
+	public Rectangle getBoundingBox() {
+		if (dirtyBoundingBox) {
+			updateBoundingBox();
+			dirtyBoundingBox = false;
+		}
+		return boundingBox;
+	}
+
+	/**
 	 * Play given {@link SpriterAnimation} given its name. It becomes the
 	 * current animation of this {@link SpriterAnimator}.
 	 * 
@@ -596,9 +613,9 @@ public class SpriterAnimator {
 
 		SpriterAnimation former = currentAnimation;
 		currentAnimation = animation;
-		
+
 		SpriterAnimationListener[] items = listeners.begin();
-		for (int i = 0, n = listeners.size ; i < n ; i++)
+		for (int i = 0, n = listeners.size; i < n; i++)
 			items[i].onAnimationChanged(this, former, animation);
 		listeners.end();
 
@@ -715,7 +732,7 @@ public class SpriterAnimator {
 				time = 0.0f;
 
 			SpriterAnimationListener[] items = listeners.begin();
-			for (int i = 0, n = listeners.size ; i < n ; i++)
+			for (int i = 0, n = listeners.size; i < n; i++)
 				items[i].onAnimationFinished(this, currentAnimation);
 			listeners.end();
 
@@ -727,7 +744,7 @@ public class SpriterAnimator {
 				time = length;
 
 			SpriterAnimationListener[] items = listeners.begin();
-			for (int i = 0, n = listeners.size ; i < n ; i++)
+			for (int i = 0, n = listeners.size; i < n; i++)
 				items[i].onAnimationFinished(this, currentAnimation);
 			listeners.end();
 		}
@@ -735,11 +752,14 @@ public class SpriterAnimator {
 		if (nextAnimation == null) {
 			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, time, deltaTime);
 		} else {
-			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime, factor);
+			FrameData.update(frameData, frameUpdateConfiguration, currentAnimation, nextAnimation, time, deltaTime,
+					factor);
 		}
 
 		// Local postprocessing
 		postProcess(frameData);
+
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -921,12 +941,12 @@ public class SpriterAnimator {
 	 */
 	protected void dispatchEvent(String eventName) {
 		SpriterAnimationListener[] items = listeners.begin();
-		for (int i = 0, n = listeners.size ; i < n ; i++)
+		for (int i = 0, n = listeners.size; i < n; i++)
 			items[i].onEventTriggered(this, eventName);
 		listeners.end();
 	}
 
-	Rectangle computeBoundingBox() {
+	private void updateBoundingBox() {
 		boolean firstItem = true;
 
 		for (SpriterObject info : frameData.spriteData) {
@@ -954,7 +974,6 @@ public class SpriterAnimator {
 				}
 			}
 		}
-		return boundingBox;
 	}
 
 	private void postProcess(FrameData frameData) {
@@ -965,7 +984,8 @@ public class SpriterAnimator {
 			FrameData.applyParentTransform(info, spatial);
 
 			// Pivot points may be affected by character map
-			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY)) && (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
+			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY))
+					&& (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
 				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
 				info.pivotX = file.pivotX;
 				info.pivotY = file.pivotY;
