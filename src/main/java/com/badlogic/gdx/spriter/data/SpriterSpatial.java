@@ -5,7 +5,9 @@
 
 package com.badlogic.gdx.spriter.data;
 
-public class SpriterSpatial {
+import com.badlogic.gdx.utils.Pool.Poolable;
+
+public class SpriterSpatial implements Poolable {
 
 	public float x;
 	public float y;
@@ -14,16 +16,23 @@ public class SpriterSpatial {
 	public float scaleY = 1;
 	public float alpha = 1;
 
-	public SpriterSpatial() {
-	}
-
-	public SpriterSpatial(SpriterSpatial other) {
+	public void merge(SpriterSpatial other) {
 		this.x = other.x;
 		this.y = other.y;
 		this.angle = other.angle;
 		this.scaleX = other.scaleX;
 		this.scaleY = other.scaleY;
 		this.alpha = other.alpha;
+	}
+
+	@Override
+	public void reset() {
+		x = 0f;
+		y = 0f;
+		angle = 0f;
+		scaleX = 1f;
+		scaleY = 1f;
+		alpha = 1f;
 	}
 
 	@Override

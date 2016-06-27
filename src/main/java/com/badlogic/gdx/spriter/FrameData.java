@@ -305,21 +305,48 @@ public class FrameData {
 	public final Array<SpriterSound> sounds = new Array<SpriterSound>();
 
 	private void clear() {
-		spriteData.clear();
+		while(spriteData.size > 0)
+			Pools.objects.free(spriteData.pop());
+		
+		for(SpriterObject object : pointData.values())
+			Pools.objects.free(object);
 		pointData.clear();
+
+		for(SpriterObject object : boxData.values())
+			Pools.objects.free(object);
 		boxData.clear();
+
+		for(SpriterVarValue value : animationVars.values())
+			Pools.varValues.free(value);
 		animationVars.clear();
+
+		for(ObjectMap<String, SpriterVarValue> map : objectVars.values()) {
+			for(SpriterVarValue value : map.values()) {
+				Pools.varValues.free(value);
+			}
+			map.clear();
+			Pools.varValuesMaps.free(map);
+		}
 		objectVars.clear();
+
 		animationTags.clear();
+
+		for(Array<String> array : objectTags.values()) {
+			array.clear();
+			Pools.stringArrays.free(array);
+		}
 		objectTags.clear();
+		
 		events.clear();
-		sounds.clear();
+
+		while(sounds.size > 0)
+			Pools.sounds.free(sounds.pop());
 	}
 
 	private void addObjectVar(String objectName, String varName, SpriterVarValue value) {
 		ObjectMap<String, SpriterVarValue> values = objectVars.get(objectName);
 		if (values == null) {
-			values = new ObjectMap<String, SpriterVarValue>();
+			values = Pools.varValuesMaps.obtain();
 			objectVars.put(objectName, values);
 		}
 		values.put(varName, value);
@@ -328,7 +355,7 @@ public class FrameData {
 	private void addObjectTag(String objectName, String tag) {
 		Array<String> tags = objectTags.get(objectName);
 		if (tags == null) {
-			tags = new Array<String>();
+			tags = Pools.stringArrays.obtain();
 			objectTags.put(objectName, tags);
 		}
 		tags.add(tag);
@@ -426,8 +453,11 @@ public class FrameData {
 		for (SpriterSoundline soundline : animation.soundlines) {
 			for (SpriterSoundlineKey key : soundline.keys) {
 				SpriterSound sound = key.soundObject;
-				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length))
-					this.sounds.add(sound);
+				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length)) {
+					SpriterSound copy = Pools.sounds.obtain();
+					copy.merge(sound);
+					this.sounds.add(copy);
+				}
 			}
 		}
 	}
@@ -458,7 +488,7 @@ public class FrameData {
 	}
 
 	private static SpriterVarValue interpolate(SpriterVarValue valA, SpriterVarValue valB, float factor) {
-		SpriterVarValue value = new SpriterVarValue();
+		SpriterVarValue value = Pools.varValues.obtain();
 
 		value.type = valA.type;
 		value.stringValue = valA.stringValue;
@@ -531,8 +561,11 @@ public class FrameData {
 		SpriterTimelineKey keyA = keys.get(spriterRef.keyId);
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
-		if (keyB == null)
-			return new SpriterSpatial(keyA.boneInfo);
+		if (keyB == null) {
+			SpriterSpatial spatial = Pools.spatials.obtain();
+			spatial.merge(keyA.boneInfo);
+			return spatial;
+		}
 
 		float factor = getFactor(keyA, keyB, animation.length, targetTime);
 		return interpolate(keyA.boneInfo, keyB.boneInfo, factor, keyA.spin);
@@ -543,15 +576,18 @@ public class FrameData {
 		SpriterTimelineKey keyA = keys.get(spriterRef.keyId);
 		SpriterTimelineKey keyB = getNextXLineKey(keys, keyA, animation.looping);
 
-		if (keyB == null)
-			return new SpriterObject(keyA.objectInfo);
+		if (keyB == null) {
+			SpriterObject object = Pools.objects.obtain();
+			object.merge(keyA.objectInfo);
+			return object;
+		}
 
 		float factor = getFactor(keyA, keyB, animation.length, targetTime);
 		return interpolate(keyA.objectInfo, keyB.objectInfo, factor, keyA.spin);
 	}
 
 	private static SpriterSpatial interpolate(SpriterSpatial a, SpriterSpatial b, float f, int spin) {
-		SpriterSpatial spatial = new SpriterSpatial();
+		SpriterSpatial spatial = Pools.spatials.obtain();
 
 		spatial.angle = MathHelper.angleLinear(a.angle, b.angle, spin, f);
 		spatial.x = MathHelper.linear(a.x, b.x, f);
@@ -563,7 +599,7 @@ public class FrameData {
 	}
 
 	private static SpriterObject interpolate(SpriterObject a, SpriterObject b, float f, int spin) {
-		SpriterObject object = new SpriterObject();
+		SpriterObject object = Pools.objects.obtain();
 
 		object.angle = MathHelper.angleLinear(a.angle, b.angle, spin, f);
 		object.alpha = MathHelper.linear(a.alpha, b.alpha, f);

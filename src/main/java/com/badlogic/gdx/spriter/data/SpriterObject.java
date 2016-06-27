@@ -14,17 +14,25 @@ public class SpriterObject extends SpriterSpatial {
 	public float pivotY = Float.NaN;
 	public float t;
 
-	public SpriterObject() {
-	}
-
-	public SpriterObject(SpriterObject other) {
-		super(other);
+	public void merge(SpriterObject other) {
+		super.merge(other);
 		this.animationId = other.animationId;
 		this.entityId = other.entityId;
 		this.file = other.file == null ? null : new SpriterFileInfo(other.file);
 		this.pivotX = other.pivotX;
 		this.pivotY = other.pivotY;
 		this.t = other.t;
+	}
+
+	@Override
+	public void reset() {
+		super.reset();
+		animationId = 0;
+		entityId = 0;
+		file = null;
+		pivotX = Float.NaN;
+		pivotY = Float.NaN;
+		t = 0f;
 	}
 
 	@Override

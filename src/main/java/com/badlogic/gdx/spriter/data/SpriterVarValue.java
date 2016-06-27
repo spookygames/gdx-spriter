@@ -5,12 +5,22 @@
 
 package com.badlogic.gdx.spriter.data;
 
-public class SpriterVarValue {
+import com.badlogic.gdx.utils.Pool.Poolable;
+
+public class SpriterVarValue implements Poolable {
 
 	public SpriterVarType type = SpriterVarType.String;
 	public String stringValue = "";
 	public float floatValue = Float.MIN_VALUE;
 	public int intValue = Integer.MIN_VALUE;
+
+	@Override
+	public void reset() {
+		type = SpriterVarType.String;
+		stringValue = "";
+		floatValue = Float.MIN_VALUE;
+		intValue = Integer.MIN_VALUE;
+	}
 
 	@Override
 	public String toString() {

@@ -5,12 +5,29 @@
 
 package com.badlogic.gdx.spriter.data;
 
-public class SpriterSound extends SpriterElement {
+import com.badlogic.gdx.utils.Pool.Poolable;
+
+public class SpriterSound extends SpriterElement implements Poolable {
 
 	public SpriterFileInfo file;
 	public boolean trigger = true;
 	public float panning;
 	public float volume = 1.0f;
+
+	public void merge(SpriterSound sound) {
+		file = sound.file;
+		trigger = sound.trigger;
+		panning = sound.panning;
+		volume = sound.volume;
+	}
+
+	@Override
+	public void reset() {
+		file = null;
+		trigger = true;
+		panning = 0f;
+		volume = 1.0f;
+	}
 
 	@Override
 	public String toString() {
