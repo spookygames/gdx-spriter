@@ -16,7 +16,7 @@ public class SpriterSpatial implements Poolable {
 	public float scaleY = 1;
 	public float alpha = 1;
 
-	public void merge(SpriterSpatial other) {
+	public void fill(SpriterSpatial other) {
 		this.x = other.x;
 		this.y = other.y;
 		this.angle = other.angle;

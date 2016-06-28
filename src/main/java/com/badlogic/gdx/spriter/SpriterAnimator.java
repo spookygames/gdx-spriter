@@ -79,6 +79,8 @@ public class SpriterAnimator {
 	private final Rectangle boundingBox = new Rectangle();
 	private boolean dirtyBoundingBox = true;
 
+	private final SpriterObject tmp = new SpriterObject();
+
 	/**
 	 * Initialize a new {@code SpriterAnimator} with given {@link SpriterEntity}
 	 * .
@@ -192,7 +194,6 @@ public class SpriterAnimator {
 		if (characterMap == null || this.characterMaps.contains(characterMap, true))
 			return;
 		this.characterMaps.add(characterMap);
-
 		SpriterAnimationListener[] items = listeners.begin();
 		for (int i = 0, n = listeners.size; i < n; i++)
 			items[i].onCharacterMapAdded(this, characterMap);
@@ -375,6 +376,7 @@ public class SpriterAnimator {
 	 */
 	public void setX(float x) {
 		this.spatial.x = x;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -394,6 +396,7 @@ public class SpriterAnimator {
 	 */
 	public void setY(float y) {
 		this.spatial.y = y;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -407,6 +410,7 @@ public class SpriterAnimator {
 	public void setPosition(float x, float y) {
 		this.spatial.x = x;
 		this.spatial.y = y;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -426,6 +430,7 @@ public class SpriterAnimator {
 	 */
 	public void setPivotX(float pivotX) {
 		this.pivotX = pivotX;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -445,6 +450,7 @@ public class SpriterAnimator {
 	 */
 	public void setPivotY(float pivotY) {
 		this.pivotY = pivotY;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -458,6 +464,7 @@ public class SpriterAnimator {
 	public void setPivot(float pivotX, float pivotY) {
 		this.pivotX = pivotX;
 		this.pivotY = pivotY;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -477,6 +484,7 @@ public class SpriterAnimator {
 	 */
 	public void setScaleX(float scaleX) {
 		this.spatial.scaleX = scaleX;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -496,6 +504,7 @@ public class SpriterAnimator {
 	 */
 	public void setScaleY(float scaleY) {
 		this.spatial.scaleY = scaleY;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -509,6 +518,7 @@ public class SpriterAnimator {
 	public void setScale(float scaleX, float scaleY) {
 		this.spatial.scaleX = scaleX;
 		this.spatial.scaleY = scaleY;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -528,6 +538,7 @@ public class SpriterAnimator {
 	 */
 	public void setAngle(float angle) {
 		this.spatial.angle = angle;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -553,6 +564,7 @@ public class SpriterAnimator {
 	 */
 	public void setAlpha(float alpha) {
 		this.spatial.alpha = alpha;
+		dirtyBoundingBox = true;
 	}
 
 	/**
@@ -756,9 +768,6 @@ public class SpriterAnimator {
 					factor);
 		}
 
-		// Local postprocessing
-		postProcess(frameData);
-
 		dirtyBoundingBox = true;
 	}
 
@@ -799,15 +808,13 @@ public class SpriterAnimator {
 	 */
 	public void draw(Batch batch, ShapeRenderer renderer) {
 		for (SpriterObject info : frameData.spriteData) {
-			SpriterFileInfo file = info.file;
-			if (file.folderId >= 0 && file.fileId >= 0) {
-				// Negative id means "don't display"
-				drawObject(batch, assets.getSprite(file), info);
-			}
+			SpriterObject object = tmp;
+			if (processObject(object, info))
+				drawObject(batch, assets.getSprite(object.file), object);
 		}
 
 		for (SpriterSound info : frameData.sounds) {
-			SpriterFileInfo file = info.file;
+			SpriterFileInfo file = applyCharacterMaps(info.file);
 			if (file.folderId >= 0 && file.fileId >= 0) {
 				// Negative id means "don't display"
 				playSound(assets.getSound(file), info);
@@ -959,19 +966,17 @@ public class SpriterAnimator {
 		boolean firstItem = true;
 
 		for (SpriterObject info : frameData.spriteData) {
-			SpriterFileInfo file = info.file;
+			SpriterObject object = tmp;
+			if (processObject(object, info)) {
+				Sprite sprite = assets.getSprite(object.file);
 
-			// Negative id means "don't display"
-			if (file.folderId >= 0 && file.fileId >= 0) {
-				Sprite sprite = assets.getSprite(file);
-
-				float originX = sprite.getWidth() * info.pivotX;
-				float originY = sprite.getHeight() * info.pivotY;
+				float originX = sprite.getWidth() * object.pivotX;
+				float originY = sprite.getHeight() * object.pivotY;
 
 				sprite.setOrigin(originX, originY);
-				sprite.setScale(info.scaleX, info.scaleY);
-				sprite.setRotation(info.angle);
-				sprite.setPosition(info.x - originX - this.pivotX, info.y - originY - this.pivotY);
+				sprite.setScale(object.scaleX, object.scaleY);
+				sprite.setRotation(object.angle);
+				sprite.setPosition(object.x - originX - this.pivotX, object.y - originY - this.pivotY);
 
 				Rectangle localBoundingBox = sprite.getBoundingRectangle();
 
@@ -985,25 +990,27 @@ public class SpriterAnimator {
 		}
 	}
 
-	private void postProcess(FrameData frameData) {
+	private boolean processObject(SpriterObject object, SpriterObject reference) {
 
-		for (SpriterObject info : frameData.spriteData) {
-			SpriterFileInfo fileInfo = info.file = applyCharacterMaps(info.file);
+		SpriterFileInfo fileInfo = applyCharacterMaps(reference.file);
 
-			FrameData.applyParentTransform(info, spatial);
+		// Negative id means "don't display"
+		if (fileInfo.folderId < 0 || fileInfo.fileId < 0)
+			return false;
 
-			// Pivot points may be affected by character map
-			if ((Float.isNaN(info.pivotX) || Float.isNaN(info.pivotY))
-					&& (fileInfo.folderId != -1 && fileInfo.fileId != -1)) {
-				SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
-				info.pivotX = file.pivotX;
-				info.pivotY = file.pivotY;
-			}
+		object.fill(reference);
+		object.file = fileInfo;
 
+		FrameData.applyParentTransform(object, spatial);
+
+		// Pivot points may be affected by character map
+		if (Float.isNaN(object.pivotX) || Float.isNaN(object.pivotY)) {
+			SpriterFile file = spriterData.folders.get(fileInfo.folderId).files.get(fileInfo.fileId);
+			object.pivotX = file.pivotX;
+			object.pivotY = file.pivotY;
 		}
 
-		for (SpriterSound info : frameData.sounds)
-			info.file = applyCharacterMaps(info.file);
+		return true;
 	}
 
 	private SpriterFileInfo applyCharacterMaps(SpriterFileInfo file) {

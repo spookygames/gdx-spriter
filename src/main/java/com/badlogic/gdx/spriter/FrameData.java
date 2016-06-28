@@ -455,7 +455,7 @@ public class FrameData {
 				SpriterSound sound = key.soundObject;
 				if (sound.trigger && isTriggered(key, targetTime, previousTime, animation.length)) {
 					SpriterSound copy = Pools.sounds.obtain();
-					copy.merge(sound);
+					copy.fill(sound);
 					this.sounds.add(copy);
 				}
 			}
@@ -563,7 +563,7 @@ public class FrameData {
 
 		if (keyB == null) {
 			SpriterSpatial spatial = Pools.spatials.obtain();
-			spatial.merge(keyA.boneInfo);
+			spatial.fill(keyA.boneInfo);
 			return spatial;
 		}
 
@@ -578,7 +578,7 @@ public class FrameData {
 
 		if (keyB == null) {
 			SpriterObject object = Pools.objects.obtain();
-			object.merge(keyA.objectInfo);
+			object.fill(keyA.objectInfo);
 			return object;
 		}
 

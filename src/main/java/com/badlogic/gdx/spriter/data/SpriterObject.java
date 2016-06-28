@@ -14,8 +14,8 @@ public class SpriterObject extends SpriterSpatial {
 	public float pivotY = Float.NaN;
 	public float t;
 
-	public void merge(SpriterObject other) {
-		super.merge(other);
+	public void fill(SpriterObject other) {
+		super.fill(other);
 		this.animationId = other.animationId;
 		this.entityId = other.entityId;
 		this.file = other.file == null ? null : new SpriterFileInfo(other.file);
