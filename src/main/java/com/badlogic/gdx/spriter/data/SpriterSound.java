@@ -15,6 +15,8 @@ public class SpriterSound extends SpriterElement implements Poolable {
 	public float volume = 1.0f;
 
 	public void fill(SpriterSound sound) {
+		id = sound.id;
+		name = sound.name;
 		file = sound.file;
 		trigger = sound.trigger;
 		panning = sound.panning;
@@ -23,6 +25,8 @@ public class SpriterSound extends SpriterElement implements Poolable {
 
 	@Override
 	public void reset() {
+		id = 0;
+		name = null;
 		file = null;
 		trigger = true;
 		panning = 0f;
