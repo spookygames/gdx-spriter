@@ -878,13 +878,13 @@ public class SpriterAnimator {
 		Color spriteColor = sprite.getColor();
 		float batchColor = batch.getPackedColor();
 		Color color = batch.getColor().mul(spriteColor);
+		color.a *= alpha;
 
 		sprite.setOrigin(originX, originY);
 		sprite.setScale(scaleX, scaleY);
 		sprite.setRotation(angle);
 		sprite.setPosition(x, y);
 		sprite.setColor(color);
-		sprite.setAlpha(alpha);
 
 		sprite.draw(batch);
 
