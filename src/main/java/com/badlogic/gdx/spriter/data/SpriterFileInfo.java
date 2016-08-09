@@ -7,8 +7,8 @@ package com.badlogic.gdx.spriter.data;
 
 public class SpriterFileInfo {
 
-	public int fileId;
-	public int folderId;
+	public int fileId = -1;
+	public int folderId = -1;
 
 	public SpriterFileInfo() {
 	}

@@ -319,8 +319,8 @@ public abstract class SpriterReader {
 		instruction.file = source;
 
 		SpriterFileInfo target = new SpriterFileInfo();
-		target.folderId = mapping.getInt("target_folder", -1);
-		target.fileId = mapping.getInt("target_file", -1);
+		target.folderId = mapping.getInt("target_folder", target.folderId);
+		target.fileId = mapping.getInt("target_file", target.fileId);
 		instruction.target = target;
 	}
 
