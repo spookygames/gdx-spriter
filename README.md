@@ -1,10 +1,10 @@
 # gdx-spriter
-A [Spriter](http://www.brashmonkey.com) implementation exclusively for [LibGDX](https://libgdx.badlogicgames.com/).
+A [Spriter](http://www.brashmonkey.com) implementation exclusively for [libgdx](https://libgdx.badlogicgames.com/).
 Totally ripped off from loodakrawa's brilliant .Net implementation [SpriterDotNet](https://github.com/loodakrawa/SpriterDotNet).
 
 ## Yet another implementation, come on!
-gdx-spriter aims at providing the smoothest out-of-the-box experience for LibGDX aficionados.
-To do so, it relies on the efficiency of SpriterDotNet's design and borrows some of LibGDX's superpowers.
+gdx-spriter aims at providing the smoothest out-of-the-box experience for libgdx aficionados.
+To do so, it relies on the efficiency of SpriterDotNet's design and borrows some of libgdx's superpowers.
 
 gdx-spriter should support roughly every feature supported by SpriterDotNet.
 SCML as well as SCON formats are supported.
@@ -12,7 +12,7 @@ SCML as well as SCON formats are supported.
 Bonus feature: character maps affect sprites *and* sounds, yay!
 
 ## Ok, still here and interested, what do I do now?
-In order to bring your shiny Spriter animations into your beloved GDX game, please follow these steps:
+In order to bring your shiny Spriter animations into your beloved libgdx game, please follow these steps:
 
 ### Before coding
 * Add a reference to gdx-spriter (download source, gradle it with jitpack, ...).
@@ -31,7 +31,7 @@ In order to bring your shiny Spriter animations into your beloved GDX game, plea
 ### Finalization
 * Don't forget to dispose your DefaultSpriterAssetProvider!
 
-## Some GDX candy
+## Some libgdx candy
 Chances are you're using an AssetManager in your game. Good for you, gdx-spriter comes with full integration.
 The Initialization and Finalization part seen above can then be made much much simpler:
 * Skip everything from previous Initialization and Finalization steps.
