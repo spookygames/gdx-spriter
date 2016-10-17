@@ -1,18 +1,21 @@
 apply plugin: 'java'
-apply plugin: 'maven'
 
 repositories {
     mavenCentral()
     jcenter()
 }
 
-group = 'com.badlogicgames.gdx'
-version = '0.1.0-SNAPSHOT'
+group = 'net.spookygames.gdx'
+version = '0.1.0'
 
 ext.gdxVersion = '1.5.5'
 
 sourceCompatibility = 1.6
+targetCompatibility = 1.6
+
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+apply plugin: 'maven-publish'
 
 dependencies {
     compile "com.badlogicgames.gdx:gdx:$gdxVersion"
@@ -32,7 +35,7 @@ task demoJar(type: Jar) {
     from {configurations.testCompile.collect {zipTree(it)}}
 	
     manifest {
-        attributes 'Main-Class': "com.badlogic.gdx.spriter.SpriterDemo"
+        attributes 'Main-Class': "net.spookygames.gdx.spriter.SpriterDemo"
     }
 }
 
@@ -53,17 +56,19 @@ artifacts {
     archives javadocJar
 }
 
-// Licence
-install {
-	repositories.mavenInstaller {
-		pom.project {
-			licenses {
-				license {
-					name 'The zlib License'
-					url 'http://www.zlib.net/zlib_license.html'
-					distribution 'repo'
-				}
-			}
-		}
-	}
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            artifact sourcesJar
+			artifact javadocJar
+        }
+    }
 }
+
+apply from: 'license.gradle'
+license.includes(["**/*.java"])
+
+apply from: 'publish.gradle'
+bintray.publications = ['maven']
