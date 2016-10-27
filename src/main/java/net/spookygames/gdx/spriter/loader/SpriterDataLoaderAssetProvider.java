@@ -99,7 +99,7 @@ public class SpriterDataLoaderAssetProvider implements SpriterAssetProvider {
 			String textureAtlas) {
 		super();
 		this.assetManager = assetManager;
-		this.textureAtlas = textureAtlas;
+		this.textureAtlas = textureAtlas == null ? null : root + textureAtlas;
 
 		for (SpriterFolder folder : data.folders) {
 			for (SpriterFile file : folder.files) {
