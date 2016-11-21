@@ -754,10 +754,13 @@ public class SpriterAnimator {
 		time += elapsed;
 
 		if (time < 0.0f) {
-			if (currentAnimation.looping)
-				time += length;
-			else
+			if (currentAnimation.looping) {
+				do {
+					time += length;
+				} while (time < 0.0f);
+			} else {
 				time = 0.0f;
+			}
 
 			SpriterAnimationListener[] items = listeners.begin();
 			for (int i = 0, n = listeners.size; i < n; i++)
@@ -766,11 +769,14 @@ public class SpriterAnimator {
 
 		} else if (time >= length) {
 
-			if (currentAnimation.looping)
-				time -= length;
-			else
+			if (currentAnimation.looping) {
+				do {
+					time -= length;
+				} while (time >= length);
+			} else {
 				time = length;
-
+			}
+			
 			SpriterAnimationListener[] items = listeners.begin();
 			for (int i = 0, n = listeners.size; i < n; i++)
 				items[i].onAnimationFinished(this, currentAnimation);
