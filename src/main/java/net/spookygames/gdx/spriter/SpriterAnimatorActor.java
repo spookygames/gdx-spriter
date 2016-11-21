@@ -264,4 +264,12 @@ public class SpriterAnimatorActor extends Widget implements Disableable, Spriter
 	@Override
 	public void onCharacterMapRemoved(SpriterAnimator animator, SpriterCharacterMap characterMap) {
 	}
+	
+	@Override
+	public String toString() {
+		if(animator == null)
+			return super.toString();
+		else
+			return super.toString() + " -- " + animator.getName();
+	}
 }
