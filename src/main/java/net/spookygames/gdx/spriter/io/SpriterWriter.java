@@ -24,14 +24,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Locale;
 
 import com.badlogic.gdx.Files.FileType;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import com.badlogic.gdx.utils.StringBuilder;
 
 import net.spookygames.gdx.spriter.data.SpriterAnimation;
 import net.spookygames.gdx.spriter.data.SpriterCharacterMap;
@@ -655,11 +653,57 @@ public abstract class SpriterWriter {
 		writer.attribute("t", tag.tagId);
 	}
 
-	private static final DecimalFormat doubleFormat = new DecimalFormat("#.######",
-			DecimalFormatSymbols.getInstance(Locale.US));
+	// This won't work with GWT
+//	private static final DecimalFormat doubleFormat = new DecimalFormat("#.######", DecimalFormatSymbols.getInstance(Locale.US));
 
 	private static String doubleToString(double d) {
-		return doubleFormat.format(d);
+		// This won't work with GWT
+//		return doubleFormat.format(d);
+		
+		// This won't work without GWT
+//		return com.google.gwt.i18n.client.NumberFormat.getFormat("#.######").format(d);
+		
+		return doubleToStringGwt(d);
+	}
+
+	private static final StringBuilder builder = new StringBuilder();
+	private static String doubleToStringGwt(double d) {
+		
+		// GWT Hack
+		builder.setLength(0);
+		
+		// Get integer part
+		long integerPart = (long) d;
+		if (integerPart >= 0 && d < 0)
+			builder.append('-');
+		builder.append(integerPart);
+		
+		// Get decimal part
+		double decimalPart = Math.abs(d - integerPart);
+		if (decimalPart > 0) {
+			
+			decimalPart *= 1000000;		// 6 zeros
+					
+			decimalPart += 1000000;
+			
+			int decimal = (int)(decimalPart + 0.5d);
+			
+			// Force a dot decimal separator
+			builder.append('.');
+			
+			String decimalString = Integer.toString(decimal);
+			int endIndex = decimalString.length() - 1;
+			for (int i = endIndex; i > 0; i--) {
+				char c = decimalString.charAt(i);
+				if (c != '0') {
+					endIndex = i;
+					break;
+				}
+			}
+			builder.append(decimalString.substring(1, endIndex + 1));
+		}
+		
+		return builder.toString();
 	}
 
 }
