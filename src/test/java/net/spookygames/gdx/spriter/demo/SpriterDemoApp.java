@@ -50,9 +50,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
-import com.badlogic.gdx.scenes.scene2d.utils.Align;
 import com.badlogic.gdx.scenes.scene2d.utils.ArraySelection;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import com.badlogic.gdx.utils.ObjectMap;
@@ -652,6 +652,8 @@ public class SpriterDemoApp implements ApplicationListener {
 		camera.update();
 
 		stage.act(delta);
+		
+		String separator = System.getProperty("line.separator");	// System.lineSeparator();
 
 		if (animator != null && animator.getCurrentAnimation() != null) {
 			timeSlider.removeListener(timeSliderListener);
@@ -663,37 +665,37 @@ public class SpriterDemoApp implements ApplicationListener {
 				metaText += "Animation vars:";
 				for (Entry<String, SpriterVarValue> entry : md.animationVars)
 					metaText += " " + entry.key + "=" + entry.value.stringValue;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 			if (md.objectVars.size > 0) {
 				metaText += "Object vars:";
 				for (Entry<String, ObjectMap<String, SpriterVarValue>> entry : md.objectVars)
 					for (Entry<String, SpriterVarValue> sub : entry.value)
 						metaText += " " + entry.key + "|" + sub.key + "=" + sub.value.stringValue;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 			if (md.animationTags.size > 0) {
 				metaText += "Animation tags:";
 				for (String entry : md.animationTags)
 					metaText += " " + entry;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 			if (md.objectTags.size > 0) {
 				metaText += "Object tags:";
 				for (Entry<String, Array<String>> entry : md.objectTags)
 					metaText += " " + entry.key + "=" + entry.value;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 			if (md.events.size > 0) {
 				metaText += "Events:";
 				for (String entry : md.events)
 					metaText += " " + entry;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 			if (md.sounds.size > 0) {
 				metaText += "Sounds: ";
 				metaText += md.sounds;
-				metaText += System.lineSeparator();
+				metaText += separator;
 			}
 
 			metaLabel.setText(metaText);
