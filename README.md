@@ -1,3 +1,8 @@
+# Important notice
+
+This project is no longer maintained and should be considered unfit for proper production use.
+It is kept as is, in an archived state, for historical purposes.
+
 # gdx-spriter
 A [Spriter](http://www.brashmonkey.com) implementation exclusively for [libgdx](https://libgdx.badlogicgames.com/).
 Totally ripped off from loodakrawa's brilliant .Net implementation [SpriterDotNet](https://github.com/loodakrawa/SpriterDotNet).
